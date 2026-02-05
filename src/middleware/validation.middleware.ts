@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { z, ZodError, ZodSchema } from 'zod';
+import { ZodSchema } from 'zod';
 import { ValidationError } from '../errors/ValidationError';
 
 type ValidationTarget = 'body' | 'query' | 'params';
@@ -23,9 +23,11 @@ export const validate = (schemas: ValidationSchemas) => {
       }
 
       next();
-    } catch (error) {
-      if (error instanceof ZodError) {
-        const details = error.errors.map((e) => ({
+    } catch (error: unknown) {
+      // Zod v4 uses 'issues' property
+      if (error && typeof error === 'object' && 'issues' in error) {
+        const zodError = error as { issues: Array<{ path: (string | number)[]; message: string }> };
+        const details = zodError.issues.map((e) => ({
           field: e.path.join('.'),
           message: e.message,
         }));

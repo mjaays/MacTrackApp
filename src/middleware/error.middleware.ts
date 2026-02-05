@@ -23,7 +23,7 @@ export const errorMiddleware = (
 
   // Prisma errors
   if (error.name === 'PrismaClientKnownRequestError') {
-    const prismaError = error as { code?: string; meta?: { target?: string[] } };
+    const prismaError = error as { code?: string; meta?: { target?: string[]; modelName?: string }; message?: string };
 
     if (prismaError.code === 'P2002') {
       res.status(409).json({
@@ -53,6 +53,11 @@ export const errorMiddleware = (
       error: {
         code: 'DATABASE_ERROR',
         message: 'Database operation failed',
+        details: process.env.NODE_ENV === 'development' ? {
+          prismaCode: prismaError.code,
+          meta: prismaError.meta,
+          originalMessage: prismaError.message,
+        } : undefined,
       },
     });
     return;

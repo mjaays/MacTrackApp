@@ -11,10 +11,27 @@ export interface JwtPayload {
   exp?: number;
 }
 
+// Parse duration string to seconds
+function parseExpiry(expiry: string): number {
+  const match = expiry.match(/^(\d+)([smhd])$/);
+  if (!match) return 900; // default 15 minutes
+
+  const value = parseInt(match[1], 10);
+  const unit = match[2];
+
+  switch (unit) {
+    case 's': return value;
+    case 'm': return value * 60;
+    case 'h': return value * 60 * 60;
+    case 'd': return value * 60 * 60 * 24;
+    default: return 900;
+  }
+}
+
 export const jwtUtil = {
   generateAccessToken(userId: string): string {
     return jwt.sign({ userId }, JWT_SECRET, {
-      expiresIn: JWT_ACCESS_EXPIRY,
+      expiresIn: parseExpiry(JWT_ACCESS_EXPIRY),
     });
   },
 

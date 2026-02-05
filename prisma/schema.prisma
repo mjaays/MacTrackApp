@@ -1,51 +1,44 @@
-// MacTrack Database Schema
-// Prisma with SQLite
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
   provider = "sqlite"
+  url      = env("DATABASE_URL")
 }
 
-// ==================== USER & AUTH ====================
-
 model User {
-  id           String   @id @default(uuid())
-  email        String   @unique
-  passwordHash String
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
-
-  // Relations
-  profile        UserProfile?
-  goals          UserGoals?
-  refreshTokens  RefreshToken[]
-  meals          Meal[]
-  workouts       Workout[]
-  progressLogs   ProgressLog[]
-  dailySummaries DailySummary[]
-  customFoods    Food[]
+  id              String         @id @default(uuid())
+  email           String         @unique
+  passwordHash    String
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  dailySummaries  DailySummary[]
   customExercises Exercise[]
+  customFoods     Food[]
+  meals           Meal[]
+  progressLogs    ProgressLog[]
+  refreshTokens   RefreshToken[]
+  goals           UserGoals?
+  profile         UserProfile?
+  workouts        Workout[]
 
   @@map("users")
 }
 
 model UserProfile {
-  id              String   @id @default(uuid())
-  userId          String   @unique
+  id              String    @id @default(uuid())
+  userId          String    @unique
   firstName       String?
   lastName        String?
   dateOfBirth     DateTime?
-  gender          String?  // MALE, FEMALE, OTHER
+  gender          String?
   heightCm        Float?
   currentWeightKg Float?
-  activityLevel   String   @default("SEDENTARY") // SEDENTARY, LIGHTLY_ACTIVE, MODERATELY_ACTIVE, VERY_ACTIVE, EXTRA_ACTIVE
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  activityLevel   String    @default("SEDENTARY")
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+  user            User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_profiles")
 }
@@ -53,25 +46,19 @@ model UserProfile {
 model UserGoals {
   id                   String   @id @default(uuid())
   userId               String   @unique
-  goalType             String   @default("MAINTAIN") // LOSE_WEIGHT, MAINTAIN, GAIN_WEIGHT, GAIN_MUSCLE, RECOMPOSITION
+  goalType             String   @default("MAINTAIN")
   targetWeightKg       Float?
-  weeklyWeightChangeKg Float?   // e.g., -0.5 for losing 0.5kg/week
-
-  // Calculated or custom targets
-  dailyCalories  Int?
-  dailyProteinG  Int?
-  dailyCarbsG    Int?
-  dailyFatG      Int?
-  dailyFiberG    Int?
-  dailyWaterMl   Int?
-
-  // Override auto-calculation
-  useCustomMacros Boolean @default(false)
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  weeklyWeightChangeKg Float?
+  dailyCalories        Int?
+  dailyProteinG        Int?
+  dailyCarbsG          Int?
+  dailyFatG            Int?
+  dailyFiberG          Int?
+  dailyWaterMl         Int?
+  useCustomMacros      Boolean  @default(false)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+  user                 User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("user_goals")
 }
@@ -82,43 +69,34 @@ model RefreshToken {
   token     String   @unique
   expiresAt DateTime
   createdAt DateTime @default(now())
-
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("refresh_tokens")
 }
 
-// ==================== FOOD & MEALS ====================
-
 model Food {
-  id           String  @id @default(uuid())
-  name         String
-  brand        String?
-  barcode      String?
-  servingSizeG Float   @default(100)
-  servingUnit  String  @default("g")
-
-  // Nutritional data per serving
-  caloriesKcal  Float
-  proteinG      Float
-  carbsG        Float
-  fatG          Float
-  fiberG        Float?
-  sugarG        Float?
-  sodiumMg      Float?
-  saturatedFatG Float?
-  cholesterolMg Float?
-
-  // Metadata
-  isVerified      Boolean  @default(false)
-  isCustom        Boolean  @default(false)
+  id              String      @id @default(uuid())
+  name            String
+  brand           String?
+  barcode         String?
+  servingSizeG    Float       @default(100)
+  servingUnit     String      @default("g")
+  caloriesKcal    Float
+  proteinG        Float
+  carbsG          Float
+  fatG            Float
+  fiberG          Float?
+  sugarG          Float?
+  sodiumMg        Float?
+  saturatedFatG   Float?
+  cholesterolMg   Float?
+  isVerified      Boolean     @default(false)
+  isCustom        Boolean     @default(false)
   createdByUserId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  createdBy   User?       @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-  mealEntries MealEntry[]
+  createdAt       DateTime    @default(now())
+  updatedAt       DateTime    @updatedAt
+  createdBy       User?       @relation(fields: [createdByUserId], references: [id])
+  mealEntries     MealEntry[]
 
   @@index([name])
   @@index([barcode])
@@ -126,76 +104,57 @@ model Food {
 }
 
 model Meal {
-  id        String   @id @default(uuid())
-  userId    String
-  name      String?  // e.g., "Breakfast", "Lunch", custom name
-  mealType  String   // BREAKFAST, LUNCH, DINNER, SNACK, OTHER
-  loggedAt  DateTime @default(now())
-  notes     String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user    User        @relation(fields: [userId], references: [id], onDelete: Cascade)
-  entries MealEntry[]
-
-  // Calculated totals (denormalized for performance)
+  id            String      @id @default(uuid())
+  userId        String
+  name          String?
+  mealType      String
+  loggedAt      DateTime    @default(now())
+  notes         String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
   totalCalories Float?
   totalProteinG Float?
   totalCarbsG   Float?
   totalFatG     Float?
+  entries       MealEntry[]
+  user          User        @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, loggedAt])
   @@map("meals")
 }
 
 model MealEntry {
-  id          String  @id @default(uuid())
-  mealId      String
-  foodId      String
-  servings    Float   @default(1)
-  customGrams Float?  // Override serving size
-
-  // Snapshot of nutritional values at time of logging
+  id           String   @id @default(uuid())
+  mealId       String
+  foodId       String
+  servings     Float    @default(1)
+  customGrams  Float?
   caloriesKcal Float
   proteinG     Float
   carbsG       Float
   fatG         Float
-
-  createdAt DateTime @default(now())
-
-  // Relations
-  meal Meal @relation(fields: [mealId], references: [id], onDelete: Cascade)
-  food Food @relation(fields: [foodId], references: [id], onDelete: Restrict)
+  createdAt    DateTime @default(now())
+  food         Food     @relation(fields: [foodId], references: [id])
+  meal         Meal     @relation(fields: [mealId], references: [id], onDelete: Cascade)
 
   @@map("meal_entries")
 }
 
-// ==================== EXERCISE & WORKOUTS ====================
-
 model Exercise {
-  id             String  @id @default(uuid())
-  name           String
-  description    String?
-  category       String  // CARDIO, STRENGTH, FLEXIBILITY, BALANCE, SPORTS, OTHER
-  muscleGroups   String? // Comma-separated: CHEST,BACK,SHOULDERS etc.
-
-  // For cardio: calories burned per minute at moderate intensity
-  caloriesPerMin Float?
-
-  // For strength: default metrics
-  isWeighted   Boolean @default(true)
-  isBodyweight Boolean @default(false)
-
-  // Metadata
-  isCustom        Boolean  @default(false)
+  id              String         @id @default(uuid())
+  name            String
+  description     String?
+  category        String
+  muscleGroups    String?
+  caloriesPerMin  Float?
+  isWeighted      Boolean        @default(true)
+  isBodyweight    Boolean        @default(false)
+  isCustom        Boolean        @default(false)
   createdByUserId String?
-  createdAt       DateTime @default(now())
-  updatedAt       DateTime @updatedAt
-
-  // Relations
-  createdBy      User?          @relation(fields: [createdByUserId], references: [id], onDelete: SetNull)
-  workoutEntries WorkoutEntry[]
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+  createdBy       User?          @relation(fields: [createdByUserId], references: [id])
+  workoutEntries  WorkoutEntry[]
 
   @@index([name])
   @@index([category])
@@ -203,123 +162,85 @@ model Exercise {
 }
 
 model Workout {
-  id          String    @id @default(uuid())
-  userId      String
-  name        String?   // e.g., "Push Day", "Morning Run"
-  workoutType String    // STRENGTH, CARDIO, HIIT, FLEXIBILITY, SPORTS, MIXED, OTHER
-  startedAt   DateTime
-  endedAt     DateTime?
-  durationMin Int?
-  notes       String?
-
-  // Calculated totals
+  id                  String         @id @default(uuid())
+  userId              String
+  name                String?
+  workoutType         String
+  startedAt           DateTime
+  endedAt             DateTime?
+  durationMin         Int?
+  notes               String?
   totalCaloriesBurned Float?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user    User           @relation(fields: [userId], references: [id], onDelete: Cascade)
-  entries WorkoutEntry[]
+  createdAt           DateTime       @default(now())
+  updatedAt           DateTime       @updatedAt
+  entries             WorkoutEntry[]
+  user                User           @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, startedAt])
   @@map("workouts")
 }
 
 model WorkoutEntry {
-  id         String @id @default(uuid())
-  workoutId  String
-  exerciseId String
-  orderIndex Int    @default(0)
-
-  // Strength training data
-  sets     Int?
-  reps     Int?
-  weightKg Float?
-
-  // Cardio data
-  durationMin  Float?
-  distanceKm   Float?
-  avgHeartRate Int?
-
-  // Calculated
+  id             String   @id @default(uuid())
+  workoutId      String
+  exerciseId     String
+  orderIndex     Int      @default(0)
+  sets           Int?
+  reps           Int?
+  weightKg       Float?
+  durationMin    Float?
+  distanceKm     Float?
+  avgHeartRate   Int?
   caloriesBurned Float?
-
-  notes     String?
-  createdAt DateTime @default(now())
-
-  // Relations
-  workout  Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
-  exercise Exercise @relation(fields: [exerciseId], references: [id], onDelete: Restrict)
+  notes          String?
+  createdAt      DateTime @default(now())
+  exercise       Exercise @relation(fields: [exerciseId], references: [id])
+  workout        Workout  @relation(fields: [workoutId], references: [id], onDelete: Cascade)
 
   @@map("workout_entries")
 }
 
-// ==================== PROGRESS TRACKING ====================
-
 model ProgressLog {
-  id       String   @id @default(uuid())
-  userId   String
-  loggedAt DateTime @default(now())
-
-  // Body measurements
+  id         String   @id @default(uuid())
+  userId     String
+  loggedAt   DateTime @default(now())
   weightKg   Float?
   bodyFatPct Float?
-
-  // Body circumferences (cm)
-  waistCm  Float?
-  hipsCm   Float?
-  chestCm  Float?
-  armsCm   Float?
-  thighsCm Float?
-
-  // Additional data
-  notes    String?
-  photoUrl String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  waistCm    Float?
+  hipsCm     Float?
+  chestCm    Float?
+  armsCm     Float?
+  thighsCm   Float?
+  notes      String?
+  photoUrl   String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@index([userId, loggedAt])
   @@map("progress_logs")
 }
 
-// ==================== DAILY SUMMARIES ====================
-
 model DailySummary {
-  id     String   @id @default(uuid())
-  userId String
-  date   DateTime
-
-  // Nutrition totals
-  caloriesConsumed Float @default(0)
-  proteinG         Float @default(0)
-  carbsG           Float @default(0)
-  fatG             Float @default(0)
-  fiberG           Float @default(0)
-  waterMl          Float @default(0)
-
-  // Exercise totals
-  caloriesBurned Float @default(0)
-  workoutMinutes Int   @default(0)
-
-  // Goals at time of logging
-  calorieGoal Int?
-  proteinGoal Int?
-  carbsGoal   Int?
-  fatGoal     Int?
-
-  // Net calculations
-  netCalories Float?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id               String   @id @default(uuid())
+  userId           String
+  date             DateTime
+  caloriesConsumed Float    @default(0)
+  proteinG         Float    @default(0)
+  carbsG           Float    @default(0)
+  fatG             Float    @default(0)
+  fiberG           Float    @default(0)
+  waterMl          Float    @default(0)
+  caloriesBurned   Float    @default(0)
+  workoutMinutes   Int      @default(0)
+  calorieGoal      Int?
+  proteinGoal      Int?
+  carbsGoal        Int?
+  fatGoal          Int?
+  netCalories      Float?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@unique([userId, date])
   @@index([userId, date])
