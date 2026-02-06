@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { MealController } from '../controllers/meal.controller';
 
 const router = Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
-// Placeholder - to be implemented
-router.get('/', (_req, res) => {
-  res.json({ success: true, data: [], message: 'Meal routes coming soon' });
-});
+router.get('/', MealController.getMeals);
+router.post('/', MealController.createMeal);
 
 export default router;
