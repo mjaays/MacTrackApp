@@ -11,7 +11,6 @@ import {
 
 const router = Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
 // GET /meals - List meals (with optional filters)

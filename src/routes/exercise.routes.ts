@@ -1,14 +1,12 @@
 import { Router } from 'express';
 import { authMiddleware } from '../middleware/auth.middleware';
+import { ExerciseController } from '../controllers/exercise.controller';
 
 const router = Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
-// Placeholder - to be implemented
-router.get('/', (_req, res) => {
-  res.json({ success: true, data: [], message: 'Exercise routes coming soon' });
-});
+router.get('/', ExerciseController.getAllExercises);
+router.post('/', ExerciseController.createExercise);
 
 export default router;

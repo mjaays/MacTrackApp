@@ -6,7 +6,6 @@ import { createFoodSchema, updateFoodSchema } from '../validators/food.validator
 
 const router = Router();
 
-// All routes require authentication
 router.use(authMiddleware);
 
 // GET /foods - List/search foods
