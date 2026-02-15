@@ -1,0 +1,269 @@
+/* ===== Progress/Analytics ===== */
+.progress-container {
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+/* Chart Section */
+.chart-section {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+  gap: 25px;
+}
+
+.chart-card {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.chart-card h3 {
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #1f2937;
+}
+
+/* Bar Chart */
+.chart {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-around;
+  gap: 8px;
+  height: 200px;
+  margin-bottom: 20px;
+}
+
+.chart-bar {
+  flex: 1;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 8px 8px 0 0;
+  position: relative;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+
+.chart-bar:hover {
+  opacity: 0.8;
+}
+
+.chart-bar span {
+  position: absolute;
+  bottom: -25px;
+  left: 50%;
+  transform: translateX(-50%);
+  font-size: 12px;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.chart-total {
+  text-align: center;
+  font-size: 14px;
+  color: #6b7280;
+  margin: 20px 0 0 0;
+}
+
+/* Line Chart */
+.line-chart {
+  position: relative;
+  height: 250px;
+  margin-bottom: 20px;
+}
+
+.line-point {
+  position: absolute;
+  width: 8px;
+  height: 8px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 50%;
+  border: 2px solid white;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  font-size: 11px;
+  color: #4b5563;
+  font-weight: 600;
+  white-space: nowrap;
+  transform: translate(-50%, -150%);
+}
+
+.trend-line {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.trend-line polyline {
+  fill: none;
+  stroke: url(#gradient);
+  stroke-width: 3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+}
+
+.stat-box {
+  background: white;
+  padding: 20px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  text-align: center;
+}
+
+.stat-box h4 {
+  font-size: 13px;
+  color: #6b7280;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0 0 10px 0;
+  font-weight: 600;
+}
+
+.big-number {
+  font-size: 32px;
+  font-weight: 700;
+  color: #667eea;
+  margin: 10px 0;
+}
+
+.trend {
+  font-size: 13px;
+  color: #10b981;
+  font-weight: 500;
+  margin: 0;
+}
+
+/* Exercise Stats */
+.exercise-stats {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.exercise-stats h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #1f2937;
+}
+
+.exercise-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.exercise-item {
+  display: grid;
+  grid-template-columns: 120px 1fr 80px;
+  gap: 15px;
+  align-items: center;
+}
+
+.exercise-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.exercise-bar {
+  height: 8px;
+  background: #e5e7eb;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.bar-fill {
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.exercise-count {
+  text-align: right;
+  font-size: 13px;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* Achievements */
+.achievements {
+  background: white;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.achievements h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 20px 0;
+  color: #1f2937;
+}
+
+.achievements-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 20px;
+}
+
+.achievement {
+  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+  border: 1px solid rgba(102, 126, 234, 0.2);
+  transition: all 0.3s ease;
+}
+
+.achievement:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
+}
+
+.achievement-icon {
+  font-size: 36px;
+  margin-bottom: 10px;
+}
+
+.achievement p {
+  font-size: 14px;
+  font-weight: 600;
+  color: #1f2937;
+  margin: 0 0 8px 0;
+}
+
+.achievement .date {
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .chart-section {
+    grid-template-columns: 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .exercise-item {
+    grid-template-columns: 1fr;
+  }
+
+  .exercise-count {
+    text-align: left;
+  }
+}
