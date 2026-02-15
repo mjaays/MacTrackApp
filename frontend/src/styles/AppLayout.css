@@ -1,3 +1,16 @@
+/* Logo in Navbar */
+.navbar-brand img {
+  height: 40px;
+  width: auto;
+  margin-right: 8px;
+  vertical-align: middle;
+  transition: opacity 0.3s ease;
+}
+
+.navbar-brand img:hover {
+  color: #667eea;
+  
+}
 /* ===== App Layout ===== */
 .app-container {
   display: flex;
@@ -34,6 +47,7 @@
 
 .navbar-brand h1:hover {
   opacity: 0.8;
+  
 }
 
 .navbar-menu {
@@ -60,7 +74,7 @@
 }
 
 .nav-link:hover {
-  opacity: 0.8;
+  color: #1babf3;
 }
 
 .navbar-auth {

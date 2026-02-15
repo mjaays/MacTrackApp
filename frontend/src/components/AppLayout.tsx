@@ -1,4 +1,6 @@
+
 import '../styles/AppLayout.css'
+import logo from '../assets/Logo.png';
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -13,8 +15,8 @@ export function AppLayout({ children, title }: AppLayoutProps) {
   return (
     <div className="app-container">
       <nav className="navbar">
-        <div className="navbar-brand">
-          <h1 style={{ cursor: 'pointer' }} onClick={() => navigate('dashboard')}>🏋️ MacTrack</h1>
+        <div className="navbar-brand" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <img src={logo} alt="Logo" style={{ height: '200px', cursor: 'pointer' }} onClick={() => navigate('dashboard')} />
         </div>
         <ul className="navbar-menu">
           <li><a style={{ cursor: 'pointer' }} onClick={() => navigate('dashboard')} className="nav-link">Dashboard</a></li>

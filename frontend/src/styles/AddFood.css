@@ -24,13 +24,13 @@
 /* ===== Card Base ===== */
 
 .card {
-  background: #ffffff;
+  background: var(--color-card-bg);
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.08);
-  border: 1px solid #e6ebf2;
+  border: 1px solid var(--color-card-border);
   transition: transform 0.2s, box-shadow 0.2s;
-  color: #22304a;
+  color: var(--color-card-text);
 }
 
 .card:hover {
@@ -80,6 +80,8 @@ background: linear-gradient(90deg, #4f8cff 60%, #6ad1ff 100%);
   padding: 12px;
   border-radius: 8px;
   border: 1.5px solid #dbe3ef;
+  color: black;
+  background-color: #f0f0f0;
   font-size: 15px;
   width: 100%;
   transition: 0.2s;
@@ -88,7 +90,7 @@ background: linear-gradient(90deg, #4f8cff 60%, #6ad1ff 100%);
 .add-food-form input:focus {
   outline: none;
   border-color: #4f8cff;
-  box-shadow: 0 0 0 3px rgba(79,140,255,0.1);
+  box-shadow: 0 0 0 3px rgba(38, 99, 211, 0.1);
 }
 
 .add-food-form button {
@@ -127,7 +129,7 @@ background: linear-gradient(90deg, #4f8cff 60%, #6ad1ff 100%);
   overflow: hidden;
 }
 .nutrition-summary-header {
-  background: linear-gradient(90deg, #4f8cff 60%, #6ad1ff 100%);
+  background: linear-gradient(90deg,#6ad1ff 10%, #4f8cff 40%);
   color: #fff;
   font-weight: 700;
   font-size: 1.18rem;
@@ -192,7 +194,7 @@ background: linear-gradient(90deg, #4f8cff 60%, #6ad1ff 100%);
   padding: 24px;
   box-shadow: 0 8px 28px rgba(0,0,0,0.08);
   border: 1px solid #e6ebf2;
-  color: #22304a;
+  color: #4a223f;
 }
 
 .foods-today-list ul {
