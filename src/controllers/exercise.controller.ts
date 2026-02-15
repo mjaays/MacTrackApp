@@ -1,28 +1,90 @@
-import { Response } from 'express';
+import { Response, NextFunction } from 'express';
+import { exerciseService } from '../services/exercise.service';
+import { responseUtil } from '../utils/response.util';
 import { AuthenticatedRequest } from '../types';
-import { ExerciseService } from '../services/exercise.service';
-import { createExerciseSchema } from '../validators/exercise.validator';
+import type { CreateExerciseInput, UpdateExerciseInput, SearchExercisesInput } from '../validators/exercise.validator';
 
-export class ExerciseController {
-  static async getAllExercises(req: AuthenticatedRequest, res: Response) {
-    const userId = req.userId!;
-    const exercises = await ExerciseService.getAllExercises(userId);
+export const exerciseController = {
+  async getAllExercises(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const params: SearchExercisesInput = {
+        query: req.query.query as string | undefined,
+        category: req.query.category as SearchExercisesInput['category'],
+        page: Number(req.query.page) || 1,
+        limit: Number(req.query.limit) || 20,
+      };
+      const result = await exerciseService.getAllExercises(req.userId!, params);
+      responseUtil.success(res, result);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.json({
-      success: true,
-      data: exercises,
-    });
-  }
+  async getExerciseById(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const exerciseId = req.params.id as string;
+      const exercise = await exerciseService.getExerciseById(req.userId!, exerciseId);
+      responseUtil.success(res, exercise);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-  static async createExercise(req: AuthenticatedRequest, res: Response) {
-    const userId = req.userId!;
-    const data = createExerciseSchema.parse(req.body);
+  async createExercise(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const exercise = await exerciseService.createExercise(
+        req.userId!,
+        req.body as CreateExerciseInput
+      );
+      responseUtil.created(res, exercise);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    const exercise = await ExerciseService.createExercise(userId, data);
+  async updateExercise(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const exerciseId = req.params.id as string;
+      const exercise = await exerciseService.updateExercise(
+        req.userId!,
+        exerciseId,
+        req.body as UpdateExerciseInput
+      );
+      responseUtil.success(res, exercise);
+    } catch (error) {
+      next(error);
+    }
+  },
 
-    res.status(201).json({
-      success: true,
-      data: exercise,
-    });
-  }
-}
+  async deleteExercise(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const exerciseId = req.params.id as string;
+      await exerciseService.deleteExercise(req.userId!, exerciseId);
+      responseUtil.noContent(res);
+    } catch (error) {
+      next(error);
+    }
+  },
+};
+
+export default exerciseController;

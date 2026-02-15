@@ -50,7 +50,7 @@ export const authController = {
     next: NextFunction
   ): Promise<void> {
     try {
-      const { refreshToken } = req.body as { refreshToken?: string };
+      const refreshToken = req.body?.refreshToken as string | undefined;
       await authService.logout(req.userId!, refreshToken);
       responseUtil.noContent(res);
     } catch (error) {
