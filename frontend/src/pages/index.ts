@@ -1,0 +1,6 @@
+export { Dashboard } from './Dashboard'
+export { Workouts } from './Workouts'
+export { Progress } from './Progress'
+export { Goals } from './Goals'
+export { Profile } from './Profile'
+export { HomePage } from './HomePage'
