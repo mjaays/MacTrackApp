@@ -3,7 +3,8 @@ import { workoutApi, exerciseApi } from '../services/api'
 import { AppLayout } from '../components/AppLayout'
 import '../styles/Workouts.css'
 
-const WORKOUT_TYPES = ['STRENGTH', 'CARDIO', 'FLEXIBILITY', 'BALANCE', 'SPORTS', 'OTHER']
+const WORKOUT_TYPES = ['STRENGTH', 'CARDIO', 'HIIT', 'FLEXIBILITY', 'SPORTS', 'MIXED', 'OTHER']
+const EXERCISE_CATEGORIES = ['STRENGTH', 'CARDIO', 'FLEXIBILITY', 'BALANCE', 'SPORTS', 'OTHER']
 
 export function Workouts() {
   const [workouts, setWorkouts] = useState<any[]>([])
@@ -21,8 +22,16 @@ export function Workouts() {
   // Exercise search for entries
   const [exerciseSearch, setExerciseSearch] = useState('')
   const [exerciseResults, setExerciseResults] = useState<any[]>([])
+  const [searchDone, setSearchDone] = useState(false)
   const [entries, setEntries] = useState<any[]>([])
   const [formMessage, setFormMessage] = useState('')
+
+  // Create exercise form
+  const [showCreateExercise, setShowCreateExercise] = useState(false)
+  const [newExName, setNewExName] = useState('')
+  const [newExCategory, setNewExCategory] = useState('STRENGTH')
+  const [newExMuscles, setNewExMuscles] = useState('')
+  const [createExMsg, setCreateExMsg] = useState('')
 
   useEffect(() => { loadWorkouts() }, [])
 
@@ -40,13 +49,16 @@ export function Workouts() {
 
   const searchExercises = async () => {
     if (!exerciseSearch.trim()) return
+    setSearchDone(false)
     try {
       const res = await exerciseApi.search(exerciseSearch)
-      if (res.success) setExerciseResults(res.data || [])
+      setExerciseResults(res.success ? (res.data || []) : [])
     } catch { setExerciseResults([]) }
+    setSearchDone(true)
   }
 
   const addEntry = (exercise: any) => {
+    if (entries.some(e => e.exerciseId === exercise.id)) return
     setEntries([...entries, {
       exerciseId: exercise.id,
       exerciseName: exercise.name,
@@ -54,6 +66,8 @@ export function Workouts() {
     }])
     setExerciseResults([])
     setExerciseSearch('')
+    setSearchDone(false)
+    setShowCreateExercise(false)
   }
 
   const updateEntry = (idx: number, field: string, value: number) => {
@@ -64,6 +78,29 @@ export function Workouts() {
 
   const removeEntry = (idx: number) => {
     setEntries(entries.filter((_, i) => i !== idx))
+  }
+
+  const handleCreateExercise = async () => {
+    if (!newExName.trim()) { setCreateExMsg('Name is required'); return }
+    setCreateExMsg('')
+    try {
+      const res = await exerciseApi.create({
+        name: newExName.trim(),
+        category: newExCategory,
+        muscleGroups: newExMuscles || undefined,
+      })
+      if (res.success && res.data) {
+        addEntry(res.data)
+        setNewExName('')
+        setNewExMuscles('')
+        setShowCreateExercise(false)
+        setCreateExMsg('')
+      } else {
+        setCreateExMsg(res.error?.message || 'Failed to create exercise')
+      }
+    } catch {
+      setCreateExMsg('Error creating exercise')
+    }
   }
 
   const handleCreate = async (e: React.FormEvent) => {
@@ -80,7 +117,8 @@ export function Workouts() {
         notes: wNotes || undefined,
         entries: entries.map(e => ({
           exerciseId: e.exerciseId,
-          sets: e.sets, reps: e.reps,
+          sets: e.sets || undefined,
+          reps: e.reps || undefined,
           weightKg: e.weightKg || undefined,
           caloriesBurned: e.caloriesBurned || undefined,
         })),
@@ -118,7 +156,7 @@ export function Workouts() {
           </button>
           <select className="filter-select" value={filter} onChange={(e) => { setFilter(e.target.value); setTimeout(loadWorkouts, 0) }}>
             <option value="">All Types</option>
-            {WORKOUT_TYPES.map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+            {WORKOUT_TYPES.map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase().replace('_', ' ')}</option>)}
           </select>
         </div>
 
@@ -134,7 +172,7 @@ export function Workouts() {
               <div className="form-field">
                 <label>Type</label>
                 <select value={wType} onChange={(e) => setWType(e.target.value)}>
-                  {WORKOUT_TYPES.map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+                  {WORKOUT_TYPES.map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase().replace('_', ' ')}</option>)}
                 </select>
               </div>
               <div className="form-field">
@@ -170,6 +208,27 @@ export function Workouts() {
                   ))}
                 </div>
               )}
+              {searchDone && exerciseResults.length === 0 && (
+                <p className="search-empty">No exercises found for "{exerciseSearch}".</p>
+              )}
+
+              {/* Create Exercise */}
+              <button type="button" className="btn-create-exercise" onClick={() => setShowCreateExercise(!showCreateExercise)}>
+                {showCreateExercise ? 'Cancel' : '+ Create Custom Exercise'}
+              </button>
+              {showCreateExercise && (
+                <div className="create-exercise-form">
+                  <div className="create-exercise-row">
+                    <input type="text" placeholder="Exercise name *" value={newExName} onChange={(e) => setNewExName(e.target.value)} />
+                    <select value={newExCategory} onChange={(e) => setNewExCategory(e.target.value)}>
+                      {EXERCISE_CATEGORIES.map(c => <option key={c} value={c}>{c.charAt(0) + c.slice(1).toLowerCase()}</option>)}
+                    </select>
+                  </div>
+                  <input type="text" placeholder="Muscle groups (e.g. Chest, Triceps)" value={newExMuscles} onChange={(e) => setNewExMuscles(e.target.value)} />
+                  {createExMsg && <div className="form-error">{createExMsg}</div>}
+                  <button type="button" className="btn-primary btn-sm" onClick={handleCreateExercise}>Create & Add</button>
+                </div>
+              )}
             </div>
 
             {/* Entries */}
@@ -179,8 +238,8 @@ export function Workouts() {
                 {entries.map((entry, idx) => (
                   <div key={idx} className="entry-row">
                     <span className="entry-name">{entry.exerciseName}</span>
-                    <input type="number" placeholder="Sets" value={entry.sets} onChange={(e) => updateEntry(idx, 'sets', Number(e.target.value))} min="1" />
-                    <input type="number" placeholder="Reps" value={entry.reps} onChange={(e) => updateEntry(idx, 'reps', Number(e.target.value))} min="1" />
+                    <input type="number" placeholder="Sets" value={entry.sets} onChange={(e) => updateEntry(idx, 'sets', Number(e.target.value))} min="0" />
+                    <input type="number" placeholder="Reps" value={entry.reps} onChange={(e) => updateEntry(idx, 'reps', Number(e.target.value))} min="0" />
                     <input type="number" placeholder="kg" value={entry.weightKg} onChange={(e) => updateEntry(idx, 'weightKg', Number(e.target.value))} min="0" />
                     <input type="number" placeholder="cal" value={entry.caloriesBurned} onChange={(e) => updateEntry(idx, 'caloriesBurned', Number(e.target.value))} min="0" />
                     <button type="button" className="btn-remove" onClick={() => removeEntry(idx)}>X</button>

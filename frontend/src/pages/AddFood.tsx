@@ -59,13 +59,16 @@ export default function AddFood() {
     }
   }
 
+  const [selectedFoodId, setSelectedFoodId] = useState<string | null>(null)
+
   const selectFood = (food: any) => {
+    setSelectedFoodId(food.id)
     setName(food.name)
-    setCalories(String(food.caloriesPerServing || ''))
+    setCalories(String(food.caloriesKcal || food.caloriesPerServing || ''))
     setProtein(String(food.proteinG || ''))
     setCarbs(String(food.carbsG || ''))
     setFat(String(food.fatG || ''))
-    setServingSize(String(food.servingSize || 100))
+    setServingSize(String(food.servingSizeG || food.servingSize || 100))
     setSearchResults([])
     setFoodSearch('')
   }
@@ -75,28 +78,33 @@ export default function AddFood() {
     setMessage('')
 
     try {
-      // Step 1: Create the food item
-      const foodRes = await foodApi.create({
-        name,
-        servingSize: Number(servingSize) || 100,
-        servingUnit: 'g',
-        caloriesPerServing: Number(calories),
-        proteinG: Number(protein) || 0,
-        carbsG: Number(carbs) || 0,
-        fatG: Number(fat) || 0,
-      })
+      let foodId = selectedFoodId
 
-      if (!foodRes.success) {
-        setMessage(foodRes.error?.message || 'Failed to create food')
-        setMessageType('error')
-        return
+      // Only create new food if we're not using an existing one
+      if (!foodId) {
+        const foodRes = await foodApi.create({
+          name,
+          servingSizeG: Number(servingSize) || 100,
+          servingUnit: 'g',
+          caloriesKcal: Number(calories),
+          proteinG: Number(protein) || 0,
+          carbsG: Number(carbs) || 0,
+          fatG: Number(fat) || 0,
+        })
+
+        if (!foodRes.success) {
+          setMessage(foodRes.error?.message || 'Failed to create food')
+          setMessageType('error')
+          return
+        }
+        foodId = foodRes.data.id
       }
 
-      // Step 2: Create a meal with this food
+      // Create a meal with this food
       const mealRes = await mealApi.create({
         mealType,
         loggedAt: new Date().toISOString(),
-        entries: [{ foodId: foodRes.data.id, servings: Number(servings) || 1 }],
+        entries: [{ foodId, servings: Number(servings) || 1 }],
       })
 
       if (mealRes.success) {
@@ -108,6 +116,7 @@ export default function AddFood() {
         setCarbs('')
         setFat('')
         setServings('1')
+        setSelectedFoodId(null)
         loadTodayData()
       } else {
         setMessage(mealRes.error?.message || 'Failed to log meal')
@@ -148,7 +157,7 @@ export default function AddFood() {
               {searchResults.map((food: any) => (
                 <div key={food.id} className="search-result-item" onClick={() => selectFood(food)}>
                   <span className="food-name">{food.name}</span>
-                  <span className="food-info">{food.caloriesPerServing} cal | P:{food.proteinG}g C:{food.carbsG}g F:{food.fatG}g</span>
+                  <span className="food-info">{food.caloriesKcal || food.caloriesPerServing} cal | P:{food.proteinG}g C:{food.carbsG}g F:{food.fatG}g</span>
                 </div>
               ))}
             </div>
@@ -159,7 +168,7 @@ export default function AddFood() {
         <form className="add-food-form" onSubmit={handleSubmit}>
           <div className="add-food-form-header">Log Food</div>
           <div className="add-food-form-row">
-            <input type="text" placeholder="Food name" value={name} onChange={(e) => setName(e.target.value)} required style={{ width: '100%' }} />
+            <input type="text" placeholder="Food name" value={name} onChange={(e) => { setName(e.target.value); setSelectedFoodId(null) }} required style={{ width: '100%' }} />
           </div>
           <div className="add-food-form-row">
             <div className="input-group">

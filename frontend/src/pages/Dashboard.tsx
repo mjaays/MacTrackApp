@@ -83,7 +83,7 @@ export function Dashboard() {
             <div className="stat-icon protein-icon">&#x1F95A;</div>
             <div className="stat-content">
               <p className="stat-label">Protein</p>
-              <p className="stat-value">{summary?.proteinConsumed?.toFixed(0) || 0}g</p>
+              <p className="stat-value">{(summary?.proteinG ?? summary?.proteinConsumed)?.toFixed(0) || 0}g</p>
               {goalComparison?.protein && (
                 <p className="stat-period">of {goalComparison.protein.goal}g goal</p>
               )}

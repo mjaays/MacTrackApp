@@ -86,7 +86,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await authApi.login(email, password);
     if (res.success && res.data) {
-      setTokens(res.data.accessToken, res.data.refreshToken);
+      const tokens = res.data.tokens || res.data;
+      setTokens(tokens.accessToken, tokens.refreshToken);
       await fetchUser();
       return { success: true };
     }
@@ -99,7 +100,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: { email: string; password: string; firstName: string; lastName: string }) => {
     const res = await authApi.register(data);
     if (res.success && res.data) {
-      setTokens(res.data.accessToken, res.data.refreshToken);
+      const tokens = res.data.tokens || res.data;
+      setTokens(tokens.accessToken, tokens.refreshToken);
       await fetchUser();
       return { success: true };
     }

@@ -295,6 +295,85 @@
   border-top: 1px solid #f3f4f6;
 }
 
+/* Search Empty State */
+.search-empty {
+  font-size: 13px;
+  color: #9ca3af;
+  padding: 8px 0;
+  margin: 0;
+}
+
+/* Create Exercise */
+.btn-create-exercise {
+  display: inline-block;
+  margin-top: 10px;
+  padding: 6px 14px;
+  background: #f0f4ff;
+  color: #667eea;
+  border: 1px solid #e0e7ff;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-create-exercise:hover {
+  background: #e0e7ff;
+}
+
+.create-exercise-form {
+  margin-top: 10px;
+  padding: 14px;
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.create-exercise-row {
+  display: flex;
+  gap: 8px;
+}
+
+.create-exercise-row input {
+  flex: 1;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.create-exercise-row select {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+  min-width: 130px;
+}
+
+.create-exercise-form input {
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+.create-exercise-form input:focus,
+.create-exercise-row input:focus,
+.create-exercise-row select:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.btn-sm {
+  padding: 8px 16px;
+  font-size: 13px;
+}
+
 /* Entries List */
 .entries-list {
   margin-top: 16px;
