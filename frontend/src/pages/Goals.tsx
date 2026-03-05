@@ -1,199 +1,238 @@
+import { useState, useEffect } from 'react'
+import { useAuth } from '../context/AuthContext'
+import { userApi } from '../services/api'
 import { AppLayout } from '../components/AppLayout'
 import '../styles/Goals.css'
 
+const GOAL_TYPES = [
+  { value: 'LOSE_WEIGHT', label: 'Lose Weight' },
+  { value: 'MAINTAIN', label: 'Maintain Weight' },
+  { value: 'GAIN_WEIGHT', label: 'Gain Weight' },
+  { value: 'GAIN_MUSCLE', label: 'Gain Muscle' },
+  { value: 'RECOMPOSITION', label: 'Body Recomposition' },
+]
+
 export function Goals() {
+  const { user, refreshUser } = useAuth()
+  const [isEditing, setIsEditing] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [message, setMessage] = useState('')
+  const [calculations, setCalculations] = useState<any>(null)
+  const [loadingCalc, setLoadingCalc] = useState(true)
+
+  const [form, setForm] = useState({
+    goalType: user?.goals?.goalType || 'MAINTAIN',
+    targetWeightKg: user?.goals?.targetWeightKg || '',
+    dailyCalorieTarget: user?.goals?.dailyCalories || '',
+    dailyProteinG: user?.goals?.dailyProteinG || '',
+    dailyCarbsG: user?.goals?.dailyCarbsG || '',
+    dailyFatG: user?.goals?.dailyFatG || '',
+  })
+
+  useEffect(() => {
+    loadCalculations()
+  }, [])
+
+  const loadCalculations = async () => {
+    setLoadingCalc(true)
+    try {
+      const res = await userApi.getCalculations()
+      if (res.success) setCalculations(res.data)
+    } catch (err) {
+      console.error('Failed to load calculations:', err)
+    } finally {
+      setLoadingCalc(false)
+    }
+  }
+
+  const updateField = (field: string, value: string | number) => {
+    setForm(prev => ({ ...prev, [field]: value }))
+  }
+
+  const applyCalculated = () => {
+    if (!calculations) return
+    setForm(prev => ({
+      ...prev,
+      dailyCalorieTarget: Math.round(calculations.recommendedCalories) || prev.dailyCalorieTarget,
+      dailyProteinG: Math.round(calculations.recommendedProteinG) || prev.dailyProteinG,
+      dailyCarbsG: Math.round(calculations.recommendedCarbsG) || prev.dailyCarbsG,
+      dailyFatG: Math.round(calculations.recommendedFatG) || prev.dailyFatG,
+    }))
+    setIsEditing(true)
+  }
+
+  const handleSave = async () => {
+    setSaving(true)
+    setMessage('')
+    try {
+      const body: Record<string, any> = {
+        goalType: form.goalType,
+      }
+      if (form.targetWeightKg) body.targetWeightKg = Number(form.targetWeightKg)
+      if (form.dailyCalorieTarget) body.dailyCalories = Number(form.dailyCalorieTarget)
+      if (form.dailyProteinG) body.dailyProteinG = Number(form.dailyProteinG)
+      if (form.dailyCarbsG) body.dailyCarbsG = Number(form.dailyCarbsG)
+      if (form.dailyFatG) body.dailyFatG = Number(form.dailyFatG)
+
+      const res = await userApi.updateGoals(body)
+      if (res.success) {
+        setMessage('Goals updated!')
+        await refreshUser()
+        setIsEditing(false)
+      } else {
+        setMessage(res.error?.message || 'Failed to update goals')
+      }
+    } catch {
+      setMessage('Error updating goals')
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  const currentGoals = user?.goals
+
   return (
-    <AppLayout title="Fitness Goals">
+    <AppLayout title="Goals">
       <div className="goals-container">
-        <button className="btn-primary btn-new-goal">+ Set New Goal</button>
+        <header className="goals-page-header">
+          <div>
+            <h2>Nutrition Goals</h2>
+            <p>Set your daily targets for calories and macronutrients</p>
+          </div>
+          <button className="btn-primary" onClick={() => setIsEditing(!isEditing)}>
+            {isEditing ? 'Cancel' : 'Edit Goals'}
+          </button>
+        </header>
 
+        {message && <div className={`goals-message ${message.includes('updated') ? 'success' : 'error'}`}>{message}</div>}
+
+        {/* Current Goals Display */}
         <div className="goals-grid">
-          <div className="goal-card active">
-            <div className="goal-header">
-              <h3>Lose 5kg</h3>
-              <span className="goal-status in-progress">In Progress</span>
+          <div className="goal-card">
+            <div className="goal-card-header">
+              <h3>Goal Type</h3>
             </div>
-            
-            <div className="goal-details">
-              <p className="goal-description">Reach my target weight by end of quarter</p>
-              <div className="goal-timeline">
-                <span className="start-date">Started: Jan 15</span>
-                <span className="target-date">Target: Apr 15</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-label">
-                <span>Progress</span>
-                <span className="progress-percentage">60%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '60%' }}></div>
-              </div>
-              <div className="progress-stats">
-                <span>Current: 73.2kg</span>
-                <span>Target: 70kg</span>
-              </div>
-            </div>
-
-            <button className="btn-track">Track Progress</button>
+            {isEditing ? (
+              <select className="goal-select" value={form.goalType} onChange={(e) => updateField('goalType', e.target.value)}>
+                {GOAL_TYPES.map(g => <option key={g.value} value={g.value}>{g.label}</option>)}
+              </select>
+            ) : (
+              <p className="goal-value">{GOAL_TYPES.find(g => g.value === currentGoals?.goalType)?.label || 'Not set'}</p>
+            )}
           </div>
 
-          <div className="goal-card active">
-            <div className="goal-header">
-              <h3>Bench Press 100kg</h3>
-              <span className="goal-status in-progress">In Progress</span>
+          <div className="goal-card">
+            <div className="goal-card-header">
+              <h3>Target Weight</h3>
             </div>
-            
-            <div className="goal-details">
-              <p className="goal-description">Increase strength in upper body</p>
-              <div className="goal-timeline">
-                <span className="start-date">Started: Dec 1</span>
-                <span className="target-date">Target: Jun 1</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-label">
-                <span>Progress</span>
-                <span className="progress-percentage">75%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '75%' }}></div>
-              </div>
-              <div className="progress-stats">
-                <span>Current: 85kg</span>
-                <span>Target: 100kg</span>
-              </div>
-            </div>
-
-            <button className="btn-track">Track Progress</button>
+            {isEditing ? (
+              <input type="number" className="goal-input" step="0.1" placeholder="kg" value={form.targetWeightKg} onChange={(e) => updateField('targetWeightKg', e.target.value)} />
+            ) : (
+              <p className="goal-value">{currentGoals?.targetWeightKg ? `${currentGoals.targetWeightKg} kg` : 'Not set'}</p>
+            )}
           </div>
 
-          <div className="goal-card completed">
-            <div className="goal-header">
-              <h3>50 Workouts</h3>
-              <span className="goal-status completed-badge">Completed</span>
+          <div className="goal-card highlight">
+            <div className="goal-card-header">
+              <h3>Daily Calories</h3>
             </div>
-            
-            <div className="goal-details">
-              <p className="goal-description">Complete 50 workouts in 3 months</p>
-              <div className="goal-timeline">
-                <span className="start-date">Started: Jan 1</span>
-                <span className="target-date">Target: Mar 31</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-label">
-                <span>Progress</span>
-                <span className="progress-percentage">100%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '100%' }}></div>
-              </div>
-              <div className="progress-stats">
-                <span>Completed: 50</span>
-                <span>Target: 50</span>
-              </div>
-            </div>
-
-            <button className="btn-track disabled">Completed ✓</button>
+            {isEditing ? (
+              <input type="number" className="goal-input" placeholder="kcal" value={form.dailyCalorieTarget} onChange={(e) => updateField('dailyCalorieTarget', e.target.value)} />
+            ) : (
+              <p className="goal-value big">{currentGoals?.dailyCalories || '--'} <span>kcal</span></p>
+            )}
           </div>
 
-          <div className="goal-card active">
-            <div className="goal-header">
-              <h3>Run 100km</h3>
-              <span className="goal-status in-progress">In Progress</span>
+          <div className="goal-card">
+            <div className="goal-card-header">
+              <h3>Daily Protein</h3>
             </div>
-            
-            <div className="goal-details">
-              <p className="goal-description">Build endurance with regular running</p>
-              <div className="goal-timeline">
-                <span className="start-date">Started: Feb 1</span>
-                <span className="target-date">Target: May 31</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-label">
-                <span>Progress</span>
-                <span className="progress-percentage">42%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '42%' }}></div>
-              </div>
-              <div className="progress-stats">
-                <span>Current: 42km</span>
-                <span>Target: 100km</span>
-              </div>
-            </div>
-
-            <button className="btn-track">Track Progress</button>
+            {isEditing ? (
+              <input type="number" className="goal-input" placeholder="grams" value={form.dailyProteinG} onChange={(e) => updateField('dailyProteinG', e.target.value)} />
+            ) : (
+              <p className="goal-value">{currentGoals?.dailyProteinG || '--'} <span>g</span></p>
+            )}
           </div>
 
-          <div className="goal-card active">
-            <div className="goal-header">
-              <h3>7-Day Workout Streak</h3>
-              <span className="goal-status in-progress">In Progress</span>
+          <div className="goal-card">
+            <div className="goal-card-header">
+              <h3>Daily Carbs</h3>
             </div>
-            
-            <div className="goal-details">
-              <p className="goal-description">Work out for 7 consecutive days</p>
-              <div className="goal-timeline">
-                <span className="start-date">Current Streak: Feb 10</span>
-                <span className="target-date">Days: 5/7</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-label">
-                <span>Progress</span>
-                <span className="progress-percentage">71%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '71%' }}></div>
-              </div>
-              <div className="progress-stats">
-                <span>Days Completed: 5</span>
-                <span>Target: 7</span>
-              </div>
-            </div>
-
-            <button className="btn-track">Track Progress</button>
+            {isEditing ? (
+              <input type="number" className="goal-input" placeholder="grams" value={form.dailyCarbsG} onChange={(e) => updateField('dailyCarbsG', e.target.value)} />
+            ) : (
+              <p className="goal-value">{currentGoals?.dailyCarbsG || '--'} <span>g</span></p>
+            )}
           </div>
 
-          <div className="goal-card active">
-            <div className="goal-header">
-              <h3>Core Strength</h3>
-              <span className="goal-status in-progress">In Progress</span>
+          <div className="goal-card">
+            <div className="goal-card-header">
+              <h3>Daily Fat</h3>
             </div>
-            
-            <div className="goal-details">
-              <p className="goal-description">Build a stronger core with dedicated exercises</p>
-              <div className="goal-timeline">
-                <span className="start-date">Started: Jan 20</span>
-                <span className="target-date">Target: May 20</span>
-              </div>
-            </div>
-
-            <div className="progress-section">
-              <div className="progress-label">
-                <span>Progress</span>
-                <span className="progress-percentage">45%</span>
-              </div>
-              <div className="progress-bar">
-                <div className="progress-fill" style={{ width: '45%' }}></div>
-              </div>
-              <div className="progress-stats">
-                <span>30 workouts done</span>
-                <span>Target: 60 workouts</span>
-              </div>
-            </div>
-
-            <button className="btn-track">Track Progress</button>
+            {isEditing ? (
+              <input type="number" className="goal-input" placeholder="grams" value={form.dailyFatG} onChange={(e) => updateField('dailyFatG', e.target.value)} />
+            ) : (
+              <p className="goal-value">{currentGoals?.dailyFatG || '--'} <span>g</span></p>
+            )}
           </div>
         </div>
+
+        {isEditing && (
+          <button className="btn-save-goals" onClick={handleSave} disabled={saving}>
+            {saving ? 'Saving...' : 'Save Goals'}
+          </button>
+        )}
+
+        {/* Calculated Recommendations */}
+        {!loadingCalc && calculations && (
+          <section className="calculated-section">
+            <div className="calculated-header">
+              <h3>Calculated Recommendations</h3>
+              <p>Based on your profile (height, weight, age, activity level)</p>
+            </div>
+            <div className="calculated-grid">
+              {calculations.bmr && (
+                <div className="calc-item">
+                  <span className="calc-label">BMR</span>
+                  <span className="calc-value">{Math.round(calculations.bmr)} kcal</span>
+                </div>
+              )}
+              {calculations.tdee && (
+                <div className="calc-item">
+                  <span className="calc-label">TDEE</span>
+                  <span className="calc-value">{Math.round(calculations.tdee)} kcal</span>
+                </div>
+              )}
+              {calculations.recommendedCalories && (
+                <div className="calc-item highlight">
+                  <span className="calc-label">Recommended Calories</span>
+                  <span className="calc-value">{Math.round(calculations.recommendedCalories)} kcal</span>
+                </div>
+              )}
+              {calculations.recommendedProteinG && (
+                <div className="calc-item">
+                  <span className="calc-label">Protein</span>
+                  <span className="calc-value">{Math.round(calculations.recommendedProteinG)}g</span>
+                </div>
+              )}
+              {calculations.recommendedCarbsG && (
+                <div className="calc-item">
+                  <span className="calc-label">Carbs</span>
+                  <span className="calc-value">{Math.round(calculations.recommendedCarbsG)}g</span>
+                </div>
+              )}
+              {calculations.recommendedFatG && (
+                <div className="calc-item">
+                  <span className="calc-label">Fat</span>
+                  <span className="calc-value">{Math.round(calculations.recommendedFatG)}g</span>
+                </div>
+              )}
+            </div>
+            <button className="btn-apply" onClick={applyCalculated}>
+              Apply Recommendations
+            </button>
+          </section>
+        )}
       </div>
     </AppLayout>
   )

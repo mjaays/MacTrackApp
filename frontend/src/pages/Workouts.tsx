@@ -1,216 +1,233 @@
+import { useState, useEffect } from 'react'
+import { workoutApi, exerciseApi } from '../services/api'
 import { AppLayout } from '../components/AppLayout'
 import '../styles/Workouts.css'
 
+const WORKOUT_TYPES = ['STRENGTH', 'CARDIO', 'FLEXIBILITY', 'BALANCE', 'SPORTS', 'OTHER']
+
 export function Workouts() {
-  const handleStartWorkout = (workoutName: string) => {
-    alert(`Starting workout: ${workoutName}`)
+  const [workouts, setWorkouts] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [filter, setFilter] = useState('')
+  const [showForm, setShowForm] = useState(false)
+
+  // New workout form
+  const [wName, setWName] = useState('')
+  const [wType, setWType] = useState('STRENGTH')
+  const [wStart, setWStart] = useState('')
+  const [wEnd, setWEnd] = useState('')
+  const [wNotes, setWNotes] = useState('')
+
+  // Exercise search for entries
+  const [exerciseSearch, setExerciseSearch] = useState('')
+  const [exerciseResults, setExerciseResults] = useState<any[]>([])
+  const [entries, setEntries] = useState<any[]>([])
+  const [formMessage, setFormMessage] = useState('')
+
+  useEffect(() => { loadWorkouts() }, [])
+
+  const loadWorkouts = async () => {
+    setLoading(true)
+    try {
+      const res = await workoutApi.getAll(undefined, undefined, filter || undefined)
+      if (res.success) setWorkouts(res.data || [])
+    } catch (err) {
+      console.error('Failed to load workouts:', err)
+    } finally {
+      setLoading(false)
+    }
   }
+
+  const searchExercises = async () => {
+    if (!exerciseSearch.trim()) return
+    try {
+      const res = await exerciseApi.search(exerciseSearch)
+      if (res.success) setExerciseResults(res.data || [])
+    } catch { setExerciseResults([]) }
+  }
+
+  const addEntry = (exercise: any) => {
+    setEntries([...entries, {
+      exerciseId: exercise.id,
+      exerciseName: exercise.name,
+      sets: 3, reps: 10, weightKg: 0, caloriesBurned: 0,
+    }])
+    setExerciseResults([])
+    setExerciseSearch('')
+  }
+
+  const updateEntry = (idx: number, field: string, value: number) => {
+    const updated = [...entries]
+    updated[idx] = { ...updated[idx], [field]: value }
+    setEntries(updated)
+  }
+
+  const removeEntry = (idx: number) => {
+    setEntries(entries.filter((_, i) => i !== idx))
+  }
+
+  const handleCreate = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setFormMessage('')
+    if (entries.length === 0) { setFormMessage('Add at least one exercise'); return }
+
+    try {
+      const res = await workoutApi.create({
+        name: wName || undefined,
+        workoutType: wType,
+        startedAt: wStart ? new Date(wStart).toISOString() : new Date().toISOString(),
+        endedAt: wEnd ? new Date(wEnd).toISOString() : undefined,
+        notes: wNotes || undefined,
+        entries: entries.map(e => ({
+          exerciseId: e.exerciseId,
+          sets: e.sets, reps: e.reps,
+          weightKg: e.weightKg || undefined,
+          caloriesBurned: e.caloriesBurned || undefined,
+        })),
+      })
+
+      if (res.success) {
+        setShowForm(false)
+        setWName(''); setWType('STRENGTH'); setWStart(''); setWEnd(''); setWNotes('')
+        setEntries([])
+        loadWorkouts()
+      } else {
+        setFormMessage(res.error?.message || 'Failed to create workout')
+      }
+    } catch {
+      setFormMessage('Error creating workout')
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Delete this workout?')) return
+    try {
+      await workoutApi.delete(id)
+      loadWorkouts()
+    } catch { /* ignore */ }
+  }
+
+  const formatDate = (d: string) => new Date(d).toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
 
   return (
     <AppLayout title="Workouts">
       <div className="workouts-container">
         <div className="workouts-header">
-          <button className="btn-primary">+ New Workout</button>
-          <input 
-            type="text" 
-            className="search-input" 
-            placeholder="Search workouts..."
-          />
-          <select className="filter-select">
-            <option>All Workouts</option>
-            <option>Strength</option>
-            <option>Cardio</option>
-            <option>Flexibility</option>
+          <button className="btn-primary" onClick={() => setShowForm(!showForm)}>
+            {showForm ? 'Cancel' : '+ New Workout'}
+          </button>
+          <select className="filter-select" value={filter} onChange={(e) => { setFilter(e.target.value); setTimeout(loadWorkouts, 0) }}>
+            <option value="">All Types</option>
+            {WORKOUT_TYPES.map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
           </select>
         </div>
 
-        <div className="workouts-grid">
-          <div className="workout-card">
-            <div className="workout-header">
-              <h3>Full Body Strength</h3>
-              <span className="category-badge strength">Strength</span>
-            </div>
-            <div className="workout-details">
-              <div className="detail-item">
-                <span className="label">Duration:</span>
-                <span className="value">60 min</span>
+        {/* New Workout Form */}
+        {showForm && (
+          <form className="workout-form" onSubmit={handleCreate}>
+            <h3>Log New Workout</h3>
+            <div className="form-grid">
+              <div className="form-field">
+                <label>Workout Name</label>
+                <input type="text" placeholder="e.g. Push Day" value={wName} onChange={(e) => setWName(e.target.value)} />
               </div>
-              <div className="detail-item">
-                <span className="label">Exercises:</span>
-                <span className="value">8</span>
+              <div className="form-field">
+                <label>Type</label>
+                <select value={wType} onChange={(e) => setWType(e.target.value)}>
+                  {WORKOUT_TYPES.map(t => <option key={t} value={t}>{t.charAt(0) + t.slice(1).toLowerCase()}</option>)}
+                </select>
               </div>
-              <div className="detail-item">
-                <span className="label">Difficulty:</span>
-                <span className="value">Intermediate</span>
+              <div className="form-field">
+                <label>Start Time</label>
+                <input type="datetime-local" value={wStart} onChange={(e) => setWStart(e.target.value)} />
+              </div>
+              <div className="form-field">
+                <label>End Time</label>
+                <input type="datetime-local" value={wEnd} onChange={(e) => setWEnd(e.target.value)} />
               </div>
             </div>
-            <div className="workout-exercises">
-              <h4>Exercises:</h4>
-              <ul>
-                <li>Squats - 4x8</li>
-                <li>Bench Press - 4x6</li>
-                <li>Deadlifts - 3x5</li>
-                <li>Rows - 4x8</li>
-              </ul>
+            <div className="form-field">
+              <label>Notes</label>
+              <input type="text" placeholder="Optional notes..." value={wNotes} onChange={(e) => setWNotes(e.target.value)} />
             </div>
-            <button className="btn-start" onClick={() => handleStartWorkout('Full Body Strength')}>Start Workout</button>
-          </div>
 
-          <div className="workout-card">
-            <div className="workout-header">
-              <h3>HIIT Cardio Blast</h3>
-              <span className="category-badge cardio">Cardio</span>
-            </div>
-            <div className="workout-details">
-              <div className="detail-item">
-                <span className="label">Duration:</span>
-                <span className="value">30 min</span>
+            {/* Exercise Search */}
+            <div className="exercise-search">
+              <label>Add Exercises</label>
+              <div className="search-bar">
+                <input type="text" placeholder="Search exercises..." value={exerciseSearch}
+                  onChange={(e) => setExerciseSearch(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchExercises())} />
+                <button type="button" onClick={searchExercises}>Search</button>
               </div>
-              <div className="detail-item">
-                <span className="label">Exercises:</span>
-                <span className="value">5</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Difficulty:</span>
-                <span className="value">Advanced</span>
-              </div>
+              {exerciseResults.length > 0 && (
+                <div className="search-results">
+                  {exerciseResults.map((ex: any) => (
+                    <div key={ex.id} className="search-result-item" onClick={() => addEntry(ex)}>
+                      <span>{ex.name}</span>
+                      <span className="category-badge">{ex.category}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
-            <div className="workout-exercises">
-              <h4>Circuit:</h4>
-              <ul>
-                <li>Burpees - 30s</li>
-                <li>Mountain Climbers - 30s</li>
-                <li>Jump Squats - 30s</li>
-                <li>Push-ups - 30s</li>
-              </ul>
-            </div>
-            <button className="btn-start" onClick={() => handleStartWorkout('HIIT Cardio Blast')}>Start Workout</button>
-          </div>
 
-          <div className="workout-card">
-            <div className="workout-header">
-              <h3>Upper Body Focus</h3>
-              <span className="category-badge strength">Strength</span>
-            </div>
-            <div className="workout-details">
-              <div className="detail-item">
-                <span className="label">Duration:</span>
-                <span className="value">45 min</span>
+            {/* Entries */}
+            {entries.length > 0 && (
+              <div className="entries-list">
+                <h4>Exercises ({entries.length})</h4>
+                {entries.map((entry, idx) => (
+                  <div key={idx} className="entry-row">
+                    <span className="entry-name">{entry.exerciseName}</span>
+                    <input type="number" placeholder="Sets" value={entry.sets} onChange={(e) => updateEntry(idx, 'sets', Number(e.target.value))} min="1" />
+                    <input type="number" placeholder="Reps" value={entry.reps} onChange={(e) => updateEntry(idx, 'reps', Number(e.target.value))} min="1" />
+                    <input type="number" placeholder="kg" value={entry.weightKg} onChange={(e) => updateEntry(idx, 'weightKg', Number(e.target.value))} min="0" />
+                    <input type="number" placeholder="cal" value={entry.caloriesBurned} onChange={(e) => updateEntry(idx, 'caloriesBurned', Number(e.target.value))} min="0" />
+                    <button type="button" className="btn-remove" onClick={() => removeEntry(idx)}>X</button>
+                  </div>
+                ))}
               </div>
-              <div className="detail-item">
-                <span className="label">Exercises:</span>
-                <span className="value">6</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Difficulty:</span>
-                <span className="value">Intermediate</span>
-              </div>
-            </div>
-            <div className="workout-exercises">
-              <h4>Exercises:</h4>
-              <ul>
-                <li>Pull-ups - 4x6</li>
-                <li>Bench Press - 4x8</li>
-                <li>Shoulder Press - 3x8</li>
-                <li>Lat Pulldowns - 3x10</li>
-              </ul>
-            </div>
-            <button className="btn-start" onClick={() => handleStartWorkout('Upper Body Focus')}>Start Workout</button>
-          </div>
+            )}
 
-          <div className="workout-card">
-            <div className="workout-header">
-              <h3>Yoga & Stretching</h3>
-              <span className="category-badge flexibility">Flexibility</span>
-            </div>
-            <div className="workout-details">
-              <div className="detail-item">
-                <span className="label">Duration:</span>
-                <span className="value">30 min</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Exercises:</span>
-                <span className="value">12</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Difficulty:</span>
-                <span className="value">Beginner</span>
-              </div>
-            </div>
-            <div className="workout-exercises">
-              <h4>Poses:</h4>
-              <ul>
-                <li>Sun Salutation</li>
-                <li>Warrior Pose</li>
-                <li>Downward Dog</li>
-                <li>Child's Pose</li>
-              </ul>
-            </div>
-            <button className="btn-start" onClick={() => handleStartWorkout('Yoga & Stretching')}>Start Workout</button>
-          </div>
+            {formMessage && <div className="form-error">{formMessage}</div>}
+            <button type="submit" className="btn-primary" style={{ marginTop: 16 }}>Save Workout</button>
+          </form>
+        )}
 
-          <div className="workout-card">
-            <div className="workout-header">
-              <h3>Leg Day Destroyer</h3>
-              <span className="category-badge strength">Strength</span>
-            </div>
-            <div className="workout-details">
-              <div className="detail-item">
-                <span className="label">Duration:</span>
-                <span className="value">50 min</span>
+        {/* Workouts List */}
+        {loading ? (
+          <div className="loading-state">Loading workouts...</div>
+        ) : workouts.length === 0 ? (
+          <div className="empty-state">No workouts yet. Log your first workout!</div>
+        ) : (
+          <div className="workouts-grid">
+            {workouts.map((w: any) => (
+              <div key={w.id} className="workout-card">
+                <div className="workout-header">
+                  <h3>{w.name || w.workoutType}</h3>
+                  <span className={`category-badge ${w.workoutType.toLowerCase()}`}>{w.workoutType}</span>
+                </div>
+                <div className="workout-details">
+                  <div className="detail-item"><span className="label">Date:</span><span className="value">{formatDate(w.startedAt)}</span></div>
+                  {w.durationMin && <div className="detail-item"><span className="label">Duration:</span><span className="value">{w.durationMin} min</span></div>}
+                  <div className="detail-item"><span className="label">Exercises:</span><span className="value">{w.entries?.length || 0}</span></div>
+                  <div className="detail-item"><span className="label">Calories:</span><span className="value">{w.totalCaloriesBurned || 0} cal</span></div>
+                </div>
+                {w.entries && w.entries.length > 0 && (
+                  <div className="workout-exercises">
+                    <h4>Exercises:</h4>
+                    <ul>
+                      {w.entries.map((e: any) => (
+                        <li key={e.id}>{e.exercise?.name || 'Exercise'} - {e.sets}x{e.reps}{e.weightKg ? ` @ ${e.weightKg}kg` : ''}</li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+                <button className="btn-delete" onClick={() => handleDelete(w.id)}>Delete</button>
               </div>
-              <div className="detail-item">
-                <span className="label">Exercises:</span>
-                <span className="value">7</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Difficulty:</span>
-                <span className="value">Advanced</span>
-              </div>
-            </div>
-            <div className="workout-exercises">
-              <h4>Exercises:</h4>
-              <ul>
-                <li>Squats - 5x5</li>
-                <li>Leg Press - 4x8</li>
-                <li>Leg Curls - 3x10</li>
-                <li>Calves - 4x12</li>
-              </ul>
-            </div>
-            <button className="btn-start" onClick={() => handleStartWorkout('Leg Day Destroyer')}>Start Workout</button>
+            ))}
           </div>
-
-          <div className="workout-card">
-            <div className="workout-header">
-              <h3>Core & Abs</h3>
-              <span className="category-badge strength">Strength</span>
-            </div>
-            <div className="workout-details">
-              <div className="detail-item">
-                <span className="label">Duration:</span>
-                <span className="value">20 min</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Exercises:</span>
-                <span className="value">5</span>
-              </div>
-              <div className="detail-item">
-                <span className="label">Difficulty:</span>
-                <span className="value">Intermediate</span>
-              </div>
-            </div>
-            <div className="workout-exercises">
-              <h4>Exercises:</h4>
-              <ul>
-                <li>Crunches - 3x15</li>
-                <li>Planks - 3x60s</li>
-                <li>Leg Raises - 3x12</li>
-                <li>Russian Twists - 3x15</li>
-              </ul>
-            </div>
-            <button className="btn-start" onClick={() => handleStartWorkout('Core & Abs')}>Start Workout</button>
-          </div>
-        </div>
+        )}
       </div>
     </AppLayout>
   )

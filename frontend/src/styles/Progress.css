@@ -1,20 +1,86 @@
-/* ===== Progress/Analytics ===== */
+/* ===== Progress Page ===== */
 .progress-container {
   display: flex;
   flex-direction: column;
-  gap: 30px;
+  gap: 24px;
 }
 
-/* Chart Section */
-.chart-section {
+.progress-page-header {
+  display: flex;
+  justify-content: flex-end;
+}
+
+/* Form */
+.progress-form {
+  background: white;
+  padding: 24px;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.progress-form h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 16px 0;
+  color: #1f2937;
+}
+
+.form-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
-  gap: 25px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
 }
 
+.form-field label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #4b5563;
+  margin-bottom: 4px;
+}
+
+.form-field input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  font-size: 14px;
+  box-sizing: border-box;
+}
+
+.form-field input:focus {
+  outline: none;
+  border-color: #667eea;
+  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.15);
+}
+
+.form-error {
+  color: #dc2626;
+  font-size: 13px;
+  margin-top: 8px;
+}
+
+.btn-primary {
+  padding: 10px 20px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+/* Weight Trend Chart */
 .chart-card {
   background: white;
-  padding: 25px;
+  padding: 24px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
@@ -22,96 +88,63 @@
 .chart-card h3 {
   font-size: 16px;
   font-weight: 600;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #1f2937;
 }
 
-/* Bar Chart */
-.chart {
+.weight-chart {
   display: flex;
   align-items: flex-end;
   justify-content: space-around;
   gap: 8px;
   height: 200px;
-  margin-bottom: 20px;
+  padding: 0 8px;
 }
 
-.chart-bar {
+.weight-point-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   flex: 1;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 8px 8px 0 0;
-  position: relative;
-  transition: all 0.3s ease;
-  cursor: pointer;
+  height: 100%;
+  justify-content: flex-end;
+  gap: 4px;
 }
 
-.chart-bar:hover {
-  opacity: 0.8;
-}
-
-.chart-bar span {
-  position: absolute;
-  bottom: -25px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 12px;
-  color: #6b7280;
+.weight-label {
+  font-size: 11px;
   font-weight: 600;
+  color: #4b5563;
+  white-space: nowrap;
 }
 
-.chart-total {
+.weight-bar {
+  width: 100%;
+  max-width: 40px;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 6px 6px 0 0;
+  transition: height 0.3s ease;
+  min-height: 4px;
+}
+
+.weight-date {
+  font-size: 11px;
+  color: #9ca3af;
+  white-space: nowrap;
+}
+
+.chart-summary {
   text-align: center;
   font-size: 14px;
   color: #6b7280;
-  margin: 20px 0 0 0;
-}
-
-/* Line Chart */
-.line-chart {
-  position: relative;
-  height: 250px;
-  margin-bottom: 20px;
-}
-
-.line-point {
-  position: absolute;
-  width: 10px;
-  height: 10px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 50%;
-  border: 2px solid white;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  font-size: 11px;
-  color: #4b5563;
-  font-weight: 600;
-  white-space: nowrap;
-  transform: translate(-50%, -150%);
-}
-
-.trend-line {
-  position: absolute;
-  bottom: 24px;
-  left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.trend-line polyline {
-  fill: none;
-  stroke: #667eea;
-  stroke-width: 2;
-  stroke-linecap: round;
-  stroke-linejoin:round;
-}
-.nightmode .trend-line polyline {
-  stroke: #a3a3ff;
+  margin: 16px 0 0 0;
 }
 
 /* Stats Grid */
 .stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 20px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 16px;
 }
 
 .stat-box {
@@ -123,150 +156,145 @@
 }
 
 .stat-box h4 {
-  font-size: 13px;
+  font-size: 12px;
   color: #6b7280;
   text-transform: uppercase;
   letter-spacing: 0.5px;
-  margin: 0 0 10px 0;
+  margin: 0 0 8px 0;
   font-weight: 600;
 }
 
 .big-number {
-  font-size: 32px;
+  font-size: 28px;
   font-weight: 700;
   color: #667eea;
-  margin: 10px 0;
-}
-
-.trend {
-  font-size: 13px;
-  color: #10b981;
-  font-weight: 500;
   margin: 0;
 }
 
-/* Exercise Stats */
-.exercise-stats {
+.big-number.trend-down {
+  color: #10b981;
+}
+
+.big-number.trend-up {
+  color: #f59e0b;
+}
+
+/* Entries Section */
+.entries-section {
   background: white;
-  padding: 25px;
+  padding: 24px;
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.exercise-stats h3 {
+.entries-section h3 {
   font-size: 18px;
   font-weight: 600;
-  margin: 0 0 20px 0;
+  margin: 0 0 16px 0;
   color: #1f2937;
 }
 
-.exercise-list {
+.progress-entries {
   display: flex;
   flex-direction: column;
-  gap: 15px;
+  gap: 12px;
 }
 
-.exercise-item {
-  display: grid;
-  grid-template-columns: 120px 1fr 80px;
-  gap: 15px;
+.progress-entry-card {
+  padding: 16px;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  transition: box-shadow 0.2s;
+}
+
+.progress-entry-card:hover {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+
+.entry-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
+  margin-bottom: 8px;
 }
 
-.exercise-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-}
-
-.exercise-bar {
-  height: 8px;
-  background: #e5e7eb;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.bar-fill {
-  height: 100%;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 4px;
-  transition: width 0.3s ease;
-}
-
-.exercise-count {
-  text-align: right;
+.entry-date {
   font-size: 13px;
   color: #6b7280;
   font-weight: 500;
 }
 
-/* Achievements */
-.achievements {
-  background: white;
-  padding: 25px;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-}
-
-.achievements h3 {
+.entry-weight {
   font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 20px 0;
-  color: #1f2937;
+  font-weight: 700;
+  color: #667eea;
 }
 
-.achievements-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
+.entry-measurements {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 8px;
 }
 
-.achievement {
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
-  padding: 20px;
-  border-radius: 12px;
-  text-align: center;
-  border: 1px solid rgba(102, 126, 234, 0.2);
-  transition: all 0.3s ease;
-}
-
-.achievement:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
-}
-
-.achievement-icon {
-  font-size: 36px;
-  margin-bottom: 10px;
-}
-
-.achievement p {
-  font-size: 14px;
-  font-weight: 600;
-  color: #1f2937;
-  margin: 0 0 8px 0;
-}
-
-.achievement .date {
+.entry-measurements span {
   font-size: 12px;
+  padding: 3px 8px;
+  background: #f3f4f6;
+  border-radius: 6px;
+  color: #4b5563;
+}
+
+.entry-notes {
+  font-size: 13px;
+  color: #6b7280;
+  font-style: italic;
+  margin: 4px 0 8px 0;
+}
+
+.btn-delete-sm {
+  padding: 4px 12px;
+  font-size: 12px;
+  color: #dc2626;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-delete-sm:hover {
+  background: #fecaca;
+}
+
+.loading-state, .empty-state {
+  text-align: center;
+  padding: 40px 20px;
   color: #9ca3af;
+  font-size: 15px;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .chart-section {
+  .form-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .stats-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .weight-chart {
+    height: 150px;
+  }
+}
+
+@media (max-width: 480px) {
+  .form-grid {
     grid-template-columns: 1fr;
   }
 
   .stats-grid {
     grid-template-columns: 1fr;
-  }
-
-  .exercise-item {
-    grid-template-columns: 1fr;
-  }
-
-  .exercise-count {
-    text-align: left;
   }
 }
