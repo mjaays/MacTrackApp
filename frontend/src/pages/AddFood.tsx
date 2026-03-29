@@ -24,6 +24,9 @@ export default function AddFood() {
   const [foodSearch, setFoodSearch] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
+  const [externalResults, setExternalResults] = useState<any[]>([])
+  const [externalSearching, setExternalSearching] = useState(false)
+  const [importingId, setImportingId] = useState<string | null>(null)
 
   useEffect(() => {
     loadTodayData()
@@ -49,13 +52,42 @@ export default function AddFood() {
   const handleSearch = async () => {
     if (!foodSearch.trim()) return
     setSearching(true)
+    setExternalResults([])
     try {
       const res = await foodApi.search(foodSearch)
-      if (res.success) setSearchResults(res.data || [])
+      if (res.success) setSearchResults(res.data?.foods || res.data || [])
     } catch {
       setSearchResults([])
     } finally {
       setSearching(false)
+    }
+  }
+
+  const handleSearchOnline = async () => {
+    if (!foodSearch.trim()) return
+    setExternalSearching(true)
+    try {
+      const res = await foodApi.searchExternal(foodSearch)
+      if (res.success) setExternalResults(res.data || [])
+    } catch {
+      setExternalResults([])
+    } finally {
+      setExternalSearching(false)
+    }
+  }
+
+  const selectExternalFood = async (food: any) => {
+    setImportingId(food.externalId)
+    try {
+      const res = await foodApi.importExternal(food)
+      if (res.success && res.data) {
+        selectFood(res.data)
+        setExternalResults([])
+      }
+    } catch {
+      // fall through — user can still fill the form manually
+    } finally {
+      setImportingId(null)
     }
   }
 
@@ -143,21 +175,50 @@ export default function AddFood() {
           <div className="search-bar">
             <input
               type="text"
-              placeholder="Search existing foods..."
+              placeholder="Search foods..."
               value={foodSearch}
-              onChange={(e) => setFoodSearch(e.target.value)}
+              onChange={(e) => { setFoodSearch(e.target.value); setExternalResults([]) }}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button onClick={handleSearch} disabled={searching}>
               {searching ? 'Searching...' : 'Search'}
+            </button>
+            <button
+              onClick={handleSearchOnline}
+              disabled={externalSearching || !foodSearch.trim()}
+              className="search-online-btn"
+              title="Search Open Food Facts database"
+            >
+              {externalSearching ? 'Searching...' : 'Search Online'}
             </button>
           </div>
           {searchResults.length > 0 && (
             <div className="search-results">
               {searchResults.map((food: any) => (
                 <div key={food.id} className="search-result-item" onClick={() => selectFood(food)}>
-                  <span className="food-name">{food.name}</span>
-                  <span className="food-info">{food.caloriesKcal || food.caloriesPerServing} cal | P:{food.proteinG}g C:{food.carbsG}g F:{food.fatG}g</span>
+                  <span className="food-name">{food.name}{food.brand ? ` (${food.brand})` : ''}</span>
+                  <span className="food-info">{food.caloriesKcal} cal | P:{food.proteinG}g C:{food.carbsG}g F:{food.fatG}g</span>
+                </div>
+              ))}
+            </div>
+          )}
+          {externalResults.length > 0 && (
+            <div className="search-results external-results">
+              <div className="external-results-label">Results from Open Food Facts</div>
+              {externalResults.map((food: any) => (
+                <div
+                  key={food.externalId}
+                  className="search-result-item"
+                  onClick={() => importingId ? undefined : selectExternalFood(food)}
+                  style={{ opacity: importingId === food.externalId ? 0.5 : 1, cursor: importingId ? 'wait' : 'pointer' }}
+                >
+                  <span className="food-name">{food.name}{food.brand ? ` (${food.brand})` : ''}</span>
+                  <span className="food-info">
+                    {importingId === food.externalId
+                      ? 'Importing...'
+                      : `${food.caloriesKcal} cal | P:${food.proteinG}g C:${food.carbsG}g F:${food.fatG}g (per 100g)`
+                    }
+                  </span>
                 </div>
               ))}
             </div>

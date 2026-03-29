@@ -109,6 +109,10 @@ export const foodApi = {
   update: (id: string, body: Record<string, any>) =>
     request(`/foods/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (id: string) => request(`/foods/${id}`, { method: 'DELETE' }),
+  searchExternal: (q: string) =>
+    request(`/foods/external/search?q=${encodeURIComponent(q)}`),
+  importExternal: (body: Record<string, any>) =>
+    request('/foods/external/import', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // ── Meals ──
@@ -147,6 +151,10 @@ export const exerciseApi = {
   update: (id: string, body: Record<string, any>) =>
     request(`/exercises/${id}`, { method: 'PUT', body: JSON.stringify(body) }),
   delete: (id: string) => request(`/exercises/${id}`, { method: 'DELETE' }),
+  searchExternal: (q: string) =>
+    request(`/exercises/external/search?q=${encodeURIComponent(q)}`),
+  importExternal: (body: Record<string, any>) =>
+    request('/exercises/external/import', { method: 'POST', body: JSON.stringify(body) }),
 };
 
 // ── Workouts ──

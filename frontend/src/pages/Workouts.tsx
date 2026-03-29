@@ -23,6 +23,9 @@ export function Workouts() {
   const [exerciseSearch, setExerciseSearch] = useState('')
   const [exerciseResults, setExerciseResults] = useState<any[]>([])
   const [searchDone, setSearchDone] = useState(false)
+  const [externalExerciseResults, setExternalExerciseResults] = useState<any[]>([])
+  const [externalSearching, setExternalSearching] = useState(false)
+  const [importingExId, setImportingExId] = useState<string | null>(null)
   const [entries, setEntries] = useState<any[]>([])
   const [formMessage, setFormMessage] = useState('')
 
@@ -50,11 +53,34 @@ export function Workouts() {
   const searchExercises = async () => {
     if (!exerciseSearch.trim()) return
     setSearchDone(false)
+    setExternalExerciseResults([])
     try {
       const res = await exerciseApi.search(exerciseSearch)
-      setExerciseResults(res.success ? (res.data || []) : [])
+      setExerciseResults(res.success ? (res.data?.exercises || res.data || []) : [])
     } catch { setExerciseResults([]) }
     setSearchDone(true)
+  }
+
+  const searchExercisesOnline = async () => {
+    if (!exerciseSearch.trim()) return
+    setExternalSearching(true)
+    try {
+      const res = await exerciseApi.searchExternal(exerciseSearch)
+      setExternalExerciseResults(res.success ? (res.data || []) : [])
+    } catch { setExternalExerciseResults([]) }
+    finally { setExternalSearching(false) }
+  }
+
+  const addExternalEntry = async (exercise: any) => {
+    setImportingExId(exercise.externalId)
+    try {
+      const res = await exerciseApi.importExternal(exercise)
+      if (res.success && res.data) {
+        addEntry(res.data)
+        setExternalExerciseResults([])
+      }
+    } catch { /* ignore */ }
+    finally { setImportingExId(null) }
   }
 
   const addEntry = (exercise: any) => {
@@ -194,9 +220,18 @@ export function Workouts() {
               <label>Add Exercises</label>
               <div className="search-bar">
                 <input type="text" placeholder="Search exercises..." value={exerciseSearch}
-                  onChange={(e) => setExerciseSearch(e.target.value)}
+                  onChange={(e) => { setExerciseSearch(e.target.value); setExternalExerciseResults([]) }}
                   onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), searchExercises())} />
                 <button type="button" onClick={searchExercises}>Search</button>
+                <button
+                  type="button"
+                  className="search-online-btn"
+                  onClick={searchExercisesOnline}
+                  disabled={externalSearching || !exerciseSearch.trim()}
+                  title="Search wger exercise database"
+                >
+                  {externalSearching ? 'Searching...' : 'Search Online'}
+                </button>
               </div>
               {exerciseResults.length > 0 && (
                 <div className="search-results">
@@ -208,8 +243,24 @@ export function Workouts() {
                   ))}
                 </div>
               )}
-              {searchDone && exerciseResults.length === 0 && (
-                <p className="search-empty">No exercises found for "{exerciseSearch}".</p>
+              {externalExerciseResults.length > 0 && (
+                <div className="search-results external-results">
+                  <div className="external-results-label">Results from wger Exercise Database</div>
+                  {externalExerciseResults.map((ex: any) => (
+                    <div
+                      key={ex.externalId}
+                      className="search-result-item"
+                      onClick={() => importingExId ? undefined : addExternalEntry(ex)}
+                      style={{ opacity: importingExId === ex.externalId ? 0.5 : 1, cursor: importingExId ? 'wait' : 'pointer' }}
+                    >
+                      <span>{importingExId === ex.externalId ? 'Importing...' : ex.name}</span>
+                      <span className="category-badge">{ex.category}{ex.muscleGroups ? ` · ${ex.muscleGroups}` : ''}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {searchDone && exerciseResults.length === 0 && externalExerciseResults.length === 0 && (
+                <p className="search-empty">No exercises found. Try "Search Online" for more results.</p>
               )}
 
               {/* Create Exercise */}

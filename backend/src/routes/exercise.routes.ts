@@ -11,6 +11,12 @@ router.use(authMiddleware);
 // GET /exercises - List/search exercises
 router.get('/', exerciseController.getAllExercises);
 
+// GET /exercises/external/search?q=query - Search wger exercise database
+router.get('/external/search', exerciseController.searchExternalExercises);
+
+// POST /exercises/external/import - Import exercise from wger into local DB
+router.post('/external/import', exerciseController.importExternalExercise);
+
 // GET /exercises/:id - Get exercise by ID
 router.get('/:id', exerciseController.getExerciseById);
 

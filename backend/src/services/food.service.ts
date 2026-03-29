@@ -3,6 +3,22 @@ import { NotFoundError } from '../errors/NotFoundError';
 import { AuthError } from '../errors/AuthError';
 import type { CreateFoodInput, UpdateFoodInput, SearchFoodsInput } from '../validators/food.validator';
 
+export interface ExternalFoodResult {
+  externalId: string;       // barcode / OFF product code
+  name: string;
+  brand?: string;
+  caloriesKcal: number;
+  proteinG: number;
+  carbsG: number;
+  fatG: number;
+  fiberG?: number;
+  sugarG?: number;
+  sodiumMg?: number;
+  saturatedFatG?: number;
+  servingSizeG: number;
+  servingUnit: string;
+}
+
 export class FoodService {
   /**
    * Get all foods accessible by user (verified + user's custom foods)
@@ -159,6 +175,82 @@ export class FoodService {
     await prisma.food.delete({
       where: { id: foodId },
     });
+  }
+}
+
+  /**
+   * Search Open Food Facts for foods matching query
+   */
+  async searchExternalFoods(query: string): Promise<ExternalFoodResult[]> {
+    const url = `https://world.openfoodfacts.org/cgi/search.pl?search_terms=${encodeURIComponent(query)}&action=process&json=1&page_size=20&fields=product_name,brands,nutriments,serving_size,code`;
+    const res = await fetch(url, { headers: { 'User-Agent': 'MacTrackApp/1.0' } });
+    if (!res.ok) return [];
+
+    const data = await res.json() as { products?: any[] };
+    if (!data.products) return [];
+
+    const results: ExternalFoodResult[] = [];
+    for (const p of data.products) {
+      const name = p.product_name?.trim();
+      if (!name) continue;
+
+      const n = p.nutriments ?? {};
+      const calories = Number(n['energy-kcal_100g'] ?? n['energy-kcal'] ?? 0);
+      const protein  = Number(n.proteins_100g  ?? n.proteins  ?? 0);
+      const carbs    = Number(n.carbohydrates_100g ?? n.carbohydrates ?? 0);
+      const fat      = Number(n.fat_100g       ?? n.fat       ?? 0);
+
+      if (calories === 0 && protein === 0 && carbs === 0 && fat === 0) continue;
+
+      results.push({
+        externalId:    String(p.code ?? ''),
+        name,
+        brand:         p.brands?.split(',')[0]?.trim() || undefined,
+        caloriesKcal:  Math.round(calories * 10) / 10,
+        proteinG:      Math.round(protein  * 10) / 10,
+        carbsG:        Math.round(carbs    * 10) / 10,
+        fatG:          Math.round(fat      * 10) / 10,
+        fiberG:        n.fiber_100g        != null ? Math.round(Number(n.fiber_100g)        * 10) / 10 : undefined,
+        sugarG:        n.sugars_100g       != null ? Math.round(Number(n.sugars_100g)       * 10) / 10 : undefined,
+        sodiumMg:      n.sodium_100g       != null ? Math.round(Number(n.sodium_100g) * 1000 * 10) / 10 : undefined,
+        saturatedFatG: n['saturated-fat_100g'] != null ? Math.round(Number(n['saturated-fat_100g']) * 10) / 10 : undefined,
+        servingSizeG:  100,
+        servingUnit:   'g',
+      });
+    }
+    return results;
+  }
+
+  /**
+   * Import an external food into the local DB (deduplicates by barcode or name).
+   * Returns the existing record if already imported.
+   */
+  async importExternalFood(userId: string, data: ExternalFoodResult) {
+    // Try dedup by barcode first
+    if (data.externalId) {
+      const existing = await prisma.food.findFirst({
+        where: { barcode: data.externalId },
+      });
+      if (existing) return existing;
+    }
+
+    const foodData: CreateFoodInput = {
+      name:          data.name,
+      brand:         data.brand,
+      barcode:       data.externalId || undefined,
+      caloriesKcal:  data.caloriesKcal,
+      proteinG:      data.proteinG,
+      carbsG:        data.carbsG,
+      fatG:          data.fatG,
+      fiberG:        data.fiberG,
+      sugarG:        data.sugarG,
+      sodiumMg:      data.sodiumMg,
+      saturatedFatG: data.saturatedFatG,
+      servingSizeG:  data.servingSizeG,
+      servingUnit:   data.servingUnit,
+    };
+
+    return this.createFood(userId, foodData);
   }
 }
 

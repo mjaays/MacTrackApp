@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { foodService } from '../services/food.service';
+import type { ExternalFoodResult } from '../services/food.service';
 import { responseUtil } from '../utils/response.util';
 import { AuthenticatedRequest } from '../types';
 import type { CreateFoodInput, UpdateFoodInput, SearchFoodsInput } from '../validators/food.validator';
@@ -92,6 +93,37 @@ export const foodController = {
       const foodId = req.params.id as string;
       await foodService.deleteFood(req.userId!, foodId);
       responseUtil.noContent(res);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async searchExternalFoods(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const query = (req.query.q as string) ?? '';
+      if (!query.trim()) {
+        responseUtil.success(res, []);
+        return;
+      }
+      const results = await foodService.searchExternalFoods(query.trim());
+      responseUtil.success(res, results);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async importExternalFood(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const food = await foodService.importExternalFood(req.userId!, req.body as ExternalFoodResult);
+      responseUtil.created(res, food);
     } catch (error) {
       next(error);
     }

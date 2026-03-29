@@ -1,5 +1,6 @@
 import { Response, NextFunction } from 'express';
 import { exerciseService } from '../services/exercise.service';
+import type { ExternalExerciseResult } from '../services/exercise.service';
 import { responseUtil } from '../utils/response.util';
 import { AuthenticatedRequest } from '../types';
 import type { CreateExerciseInput, UpdateExerciseInput, SearchExercisesInput } from '../validators/exercise.validator';
@@ -81,6 +82,37 @@ export const exerciseController = {
       const exerciseId = req.params.id as string;
       await exerciseService.deleteExercise(req.userId!, exerciseId);
       responseUtil.noContent(res);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async searchExternalExercises(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const query = (req.query.q as string) ?? '';
+      if (!query.trim()) {
+        responseUtil.success(res, []);
+        return;
+      }
+      const results = await exerciseService.searchExternalExercises(query.trim());
+      responseUtil.success(res, results);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  async importExternalExercise(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const exercise = await exerciseService.importExternalExercise(req.userId!, req.body as ExternalExerciseResult);
+      responseUtil.created(res, exercise);
     } catch (error) {
       next(error);
     }

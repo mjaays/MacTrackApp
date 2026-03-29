@@ -11,6 +11,12 @@ router.use(authMiddleware);
 // GET /foods - List/search foods
 router.get('/', foodController.getAllFoods);
 
+// GET /foods/external/search?q=query - Search Open Food Facts
+router.get('/external/search', foodController.searchExternalFoods);
+
+// POST /foods/external/import - Import food from Open Food Facts into local DB
+router.post('/external/import', foodController.importExternalFood);
+
 // GET /foods/barcode/:barcode - Get food by barcode
 router.get('/barcode/:barcode', foodController.getFoodByBarcode);
 
