@@ -128,7 +128,6 @@ export class ExerciseService {
       where: { id: exerciseId },
     });
   }
-}
 
   // Map wger category names (body parts) to our ExerciseCategory enum
   private mapWgerCategory(categoryName?: string): string {

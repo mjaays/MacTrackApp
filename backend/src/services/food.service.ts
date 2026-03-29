@@ -176,7 +176,6 @@ export class FoodService {
       where: { id: foodId },
     });
   }
-}
 
   /**
    * Search Open Food Facts for foods matching query
