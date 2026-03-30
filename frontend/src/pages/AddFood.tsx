@@ -24,6 +24,7 @@ export default function AddFood() {
   const [foodSearch, setFoodSearch] = useState('')
   const [searchResults, setSearchResults] = useState<any[]>([])
   const [searching, setSearching] = useState(false)
+  const [foodSearchDone, setFoodSearchDone] = useState(false)
   const [externalResults, setExternalResults] = useState<any[]>([])
   const [externalSearching, setExternalSearching] = useState(false)
   const [importingId, setImportingId] = useState<string | null>(null)
@@ -52,14 +53,17 @@ export default function AddFood() {
   const handleSearch = async () => {
     if (!foodSearch.trim()) return
     setSearching(true)
+    setFoodSearchDone(false)
     setExternalResults([])
     try {
       const res = await foodApi.search(foodSearch)
       if (res.success) setSearchResults(res.data?.foods || res.data || [])
+      else setSearchResults([])
     } catch {
       setSearchResults([])
     } finally {
       setSearching(false)
+      setFoodSearchDone(true)
     }
   }
 
@@ -103,6 +107,15 @@ export default function AddFood() {
     setServingSize(String(food.servingSizeG || food.servingSize || 100))
     setSearchResults([])
     setFoodSearch('')
+    setFoodSearchDone(false)
+  }
+
+  const handleDeleteMeal = async (mealId: string) => {
+    if (!confirm('Remove this meal entry?')) return
+    try {
+      await mealApi.delete(mealId)
+      loadTodayData()
+    } catch { /* ignore */ }
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -177,7 +190,7 @@ export default function AddFood() {
               type="text"
               placeholder="Search foods..."
               value={foodSearch}
-              onChange={(e) => { setFoodSearch(e.target.value); setExternalResults([]) }}
+              onChange={(e) => { setFoodSearch(e.target.value); setExternalResults([]); setFoodSearchDone(false) }}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
             />
             <button onClick={handleSearch} disabled={searching}>
@@ -223,6 +236,9 @@ export default function AddFood() {
               ))}
             </div>
           )}
+          {foodSearchDone && searchResults.length === 0 && externalResults.length === 0 && (
+            <p className="food-search-empty">No local results found. Try the <strong>Search Online</strong> button to find foods from Open Food Facts.</p>
+          )}
         </section>
 
         {/* Add Food Form */}
@@ -231,6 +247,11 @@ export default function AddFood() {
           <div className="add-food-form-row">
             <input type="text" placeholder="Food name" value={name} onChange={(e) => { setName(e.target.value); setSelectedFoodId(null) }} required style={{ width: '100%' }} />
           </div>
+          {selectedFoodId && (
+            <div className="add-food-form-row">
+              <p className="serving-size-info">1 serving = {servingSize}g &nbsp;·&nbsp; Adjust <strong>Servings</strong> below to match your portion</p>
+            </div>
+          )}
           <div className="add-food-form-row">
             <div className="input-group">
               <label>Calories</label>
@@ -277,41 +298,37 @@ export default function AddFood() {
           <section className="nutrition-summary">
             <div className="nutrition-summary-header">Today's Nutrition</div>
             <div className="nutrition-macros-grid">
-              {goalComparison.calories && (
-                <>
-                  <div className="nutrition-macro-label">Calories</div>
-                  <div className="nutrition-macro-value">{goalComparison.calories.consumed} / {goalComparison.calories.goal} kcal</div>
-                  <div className="nutrition-macro-bar">
-                    <div className="nutrition-macro-bar-inner" style={{ width: `${Math.min(100, goalComparison.calories.percentage)}%` }} />
+              {[
+                { label: 'Calories', unit: 'kcal', data: goalComparison.calories, colorClass: '' },
+                { label: 'Protein',  unit: 'g',    data: goalComparison.protein,  colorClass: 'protein' },
+                { label: 'Carbs',    unit: 'g',    data: goalComparison.carbs,    colorClass: 'carbs' },
+                { label: 'Fat',      unit: 'g',    data: goalComparison.fat,      colorClass: 'fat' },
+              ].map(({ label, unit, data, colorClass }) => {
+                const consumed = Number(data?.consumed ?? 0)
+                const goal = data?.goal ? Number(data.goal) : null
+                const pct = goal ? Math.min(100, Math.round((consumed / goal) * 100)) : null
+                return (
+                  <div key={label} style={{ display: 'contents' }}>
+                    <div className="nutrition-macro-label">{label}</div>
+                    <div className="nutrition-macro-value">
+                      {label === 'Calories' ? consumed : consumed.toFixed(0)}
+                      {goal ? ` / ${goal} ${unit}` : ` ${unit}`}
+                      {pct !== null && <span className="nutrition-pct"> ({pct}%)</span>}
+                    </div>
+                    <div className="nutrition-macro-bar">
+                      {pct !== null ? (
+                        <div className={`nutrition-macro-bar-inner ${colorClass}`} style={{ width: `${pct}%` }} />
+                      ) : (
+                        <div className="nutrition-macro-bar-no-goal" />
+                      )}
+                    </div>
                   </div>
-                </>
-              )}
-              {goalComparison.protein && (
-                <>
-                  <div className="nutrition-macro-label">Protein</div>
-                  <div className="nutrition-macro-value">{goalComparison.protein.consumed.toFixed(0)} / {goalComparison.protein.goal} g</div>
-                  <div className="nutrition-macro-bar">
-                    <div className="nutrition-macro-bar-inner protein" style={{ width: `${Math.min(100, goalComparison.protein.percentage)}%` }} />
-                  </div>
-                </>
-              )}
-              {goalComparison.carbs && (
-                <>
-                  <div className="nutrition-macro-label">Carbs</div>
-                  <div className="nutrition-macro-value">{goalComparison.carbs.consumed.toFixed(0)} / {goalComparison.carbs.goal} g</div>
-                  <div className="nutrition-macro-bar">
-                    <div className="nutrition-macro-bar-inner carbs" style={{ width: `${Math.min(100, goalComparison.carbs.percentage)}%` }} />
-                  </div>
-                </>
-              )}
-              {goalComparison.fat && (
-                <>
-                  <div className="nutrition-macro-label">Fat</div>
-                  <div className="nutrition-macro-value">{goalComparison.fat.consumed.toFixed(0)} / {goalComparison.fat.goal} g</div>
-                  <div className="nutrition-macro-bar">
-                    <div className="nutrition-macro-bar-inner fat" style={{ width: `${Math.min(100, goalComparison.fat.percentage)}%` }} />
-                  </div>
-                </>
+                )
+              })}
+              {!goalComparison.calories?.goal && (
+                <div className="nutrition-no-goals">
+                  Set your daily goals in <strong>Goals</strong> to track progress
+                </div>
               )}
             </div>
           </section>
@@ -328,7 +345,10 @@ export default function AddFood() {
             <div className="meals-list">
               {todayMeals.map((meal: any) => (
                 <div key={meal.id} className="meal-item">
-                  <div className="meal-type-badge">{meal.mealType}</div>
+                  <div className="meal-item-header">
+                    <div className="meal-type-badge">{meal.mealType}</div>
+                    <button className="btn-delete-meal" onClick={() => handleDeleteMeal(meal.id)}>Delete</button>
+                  </div>
                   <div className="meal-entries">
                     {(meal.entries || []).map((entry: any) => (
                       <div key={entry.id} className="meal-entry">

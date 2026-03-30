@@ -270,7 +270,7 @@
   cursor: pointer;
 }
 
-.search-results {
+.exercise-search .search-results {
   margin-top: 8px;
   border: 1px solid #e5e7eb;
   border-radius: 8px;
