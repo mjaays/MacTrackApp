@@ -99,10 +99,12 @@
 .form-row {
   display: flex;
   gap: 14px;
+  align-items: flex-start;
 }
 
 .form-row .form-group {
   flex: 1;
+  min-width: 0;
 }
 
 .form-group {
@@ -126,6 +128,8 @@
   background: #f9fafb;
   transition: border-color 0.2s, box-shadow 0.2s;
   outline: none;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .form-group input:focus {
