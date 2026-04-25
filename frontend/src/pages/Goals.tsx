@@ -79,6 +79,7 @@ export function Goals() {
         setMessage('Goals updated!')
         await refreshUser()
         setIsEditing(false)
+        ;(window as any).triggerGamificationCheck?.()
       } else {
         setMessage(res.error?.message || 'Failed to update goals')
       }

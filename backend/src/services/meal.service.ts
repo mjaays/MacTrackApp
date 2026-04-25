@@ -1,5 +1,6 @@
 import { prisma } from '../utils/prisma';
 import { NotFoundError } from '../errors/NotFoundError';
+import { gamificationService } from './gamification.service';
 import { startOfDay, endOfDay, parseISO } from 'date-fns';
 import type {
   CreateMealInput,
@@ -147,7 +148,7 @@ export class MealService {
     );
 
     // Create meal with entries
-    return prisma.meal.create({
+    const meal = await prisma.meal.create({
       data: {
         userId,
         name: input.name ?? null,
@@ -168,6 +169,8 @@ export class MealService {
         },
       },
     });
+    gamificationService.onMealLogged(userId).catch(() => {});
+    return meal;
   }
 
   /**

@@ -61,6 +61,7 @@ export function Progress() {
         setWeightKg(''); setBodyFatPct(''); setWaistCm(''); setHipsCm('')
         setChestCm(''); setArmsCm(''); setThighsCm(''); setNotes('')
         loadData()
+        ;(window as any).triggerGamificationCheck?.()
       } else {
         setFormMessage(res.error?.message || 'Failed to log progress')
       }

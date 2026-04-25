@@ -155,6 +155,7 @@ export function Workouts() {
         setWName(''); setWType('STRENGTH'); setWStart(''); setWEnd(''); setWNotes('')
         setEntries([])
         loadWorkouts()
+        ;(window as any).triggerGamificationCheck?.()
       } else {
         setFormMessage(res.error?.message || 'Failed to create workout')
       }

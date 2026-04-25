@@ -1,5 +1,6 @@
 import { prisma } from '../utils/prisma';
 import { NotFoundError } from '../errors/NotFoundError';
+import { gamificationService } from './gamification.service';
 import { startOfDay, endOfDay, parseISO } from 'date-fns';
 import type {
   CreateWorkoutInput,
@@ -98,7 +99,7 @@ export class WorkoutService {
     const totalCaloriesBurned =
       input.entries.reduce((sum, e) => sum + (e.caloriesBurned ?? 0), 0) || null;
 
-    return prisma.workout.create({
+    const workout = await prisma.workout.create({
       data: {
         userId,
         name: input.name ?? null,
@@ -130,6 +131,8 @@ export class WorkoutService {
         },
       },
     });
+    gamificationService.onWorkoutCompleted(userId).catch(() => {});
+    return workout;
   }
 
   async updateWorkout(userId: string, workoutId: string, data: UpdateWorkoutInput) {

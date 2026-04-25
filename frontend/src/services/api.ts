@@ -199,3 +199,12 @@ export const dashboardApi = {
   getWeekly: () => request('/dashboard/weekly'),
   getDate: (date: string) => request(`/dashboard/${date}`),
 };
+
+// ── Gamification ──
+
+export const gamificationApi = {
+  getStats:        () => request('/gamification/stats'),
+  getAchievements: () => request('/gamification/achievements'),
+  getTodayQuests:  () => request('/gamification/quests/today'),
+  getLeaderboard:  () => request('/gamification/leaderboard'),
+};

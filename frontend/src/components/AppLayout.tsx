@@ -32,6 +32,7 @@ export function AppLayout({ children, title }: AppLayoutProps) {
           <li><a className={`nav-link ${activePage.includes('goal') ? 'active' : ''}`} onClick={() => navigate('goals')}>Goals</a></li>
           <li><a className={`nav-link ${activePage.includes('food') || activePage.includes('meal') ? 'active' : ''}`} onClick={() => navigate('addfood')}>Meals</a></li>
           <li><a className={`nav-link ${activePage.includes('profile') ? 'active' : ''}`} onClick={() => navigate('profile')}>Profile</a></li>
+          <li><a className={`nav-link ${activePage.includes('achievement') ? 'active' : ''}`} onClick={() => navigate('achievements')}>&#x1F3C6; Achievements</a></li>
         </ul>
         <div className="navbar-auth">
           {user && <span className="navbar-user">{user.firstName}</span>}
@@ -63,6 +64,10 @@ export function AppLayout({ children, title }: AppLayoutProps) {
         <div className={`sidebar-item ${activePage.includes('profile') ? 'active' : ''}`} onClick={() => navigate('profile')}>
           <span className="sidebar-icon">&#x1F464;</span>
           <span>Profile</span>
+        </div>
+        <div className={`sidebar-item ${activePage.includes('achievement') ? 'active' : ''}`} onClick={() => navigate('achievements')}>
+          <span className="sidebar-icon">&#x1F3C6;</span>
+          <span>Achievements</span>
         </div>
       </div>
 

@@ -1,0 +1,153 @@
+/* ===== Gamification Toasts ===== */
+
+.g-toasts {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 9999;
+  max-width: 320px;
+  pointer-events: none;
+}
+
+.g-toast {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-radius: 14px;
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.2);
+  animation: g-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards;
+  pointer-events: all;
+  min-width: 260px;
+}
+
+@keyframes g-slide-in {
+  from { transform: translateX(110%); opacity: 0; }
+  to   { transform: translateX(0);    opacity: 1; }
+}
+
+/* Level up — gold */
+.g-toast-levelup {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: white;
+}
+
+/* Quest complete — green */
+.g-toast-quest {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+}
+
+/* Achievement — common */
+.g-toast-achievement.g-rarity-common {
+  background: #f3f4f6;
+  color: #1f2937;
+  border: 2px solid #d1d5db;
+}
+
+/* Achievement — rare */
+.g-toast-achievement.g-rarity-rare {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  color: white;
+}
+
+/* Achievement — epic */
+.g-toast-achievement.g-rarity-epic {
+  background: linear-gradient(135deg, #8b5cf6 0%, #6d28d9 100%);
+  color: white;
+}
+
+/* Achievement — legendary */
+.g-toast-achievement.g-rarity-legendary {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 50%, #f59e0b 100%);
+  background-size: 200% 100%;
+  animation: g-slide-in 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) forwards, g-shimmer 2s ease infinite 0.4s;
+  color: white;
+}
+
+@keyframes g-shimmer {
+  0%   { background-position: 100% 0; }
+  100% { background-position: -100% 0; }
+}
+
+.g-toast-icon {
+  font-size: 28px;
+  line-height: 1;
+  flex-shrink: 0;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+.g-toast-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.g-toast-title {
+  font-size: 14px;
+  font-weight: 800;
+  margin: 0 0 2px 0;
+  letter-spacing: 0.2px;
+}
+
+.g-toast-sub {
+  font-size: 13px;
+  margin: 0 0 4px 0;
+  opacity: 0.9;
+}
+
+.g-toast-xp {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 800;
+  background: rgba(255, 255, 255, 0.25);
+  padding: 2px 8px;
+  border-radius: 10px;
+  letter-spacing: 0.3px;
+}
+
+/* XP badge for common (dark bg needed) */
+.g-rarity-common .g-toast-xp {
+  background: rgba(0, 0, 0, 0.1);
+  color: #374151;
+}
+
+.g-toast-close {
+  background: rgba(255, 255, 255, 0.2);
+  border: none;
+  color: inherit;
+  font-size: 18px;
+  line-height: 1;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+  padding: 0;
+}
+
+.g-toast-close:hover {
+  opacity: 1;
+}
+
+/* Dark close for common achievement */
+.g-rarity-common .g-toast-close {
+  background: rgba(0, 0, 0, 0.08);
+  color: #374151;
+}
+
+@media (max-width: 480px) {
+  .g-toasts {
+    left: 12px;
+    right: 12px;
+    bottom: 12px;
+    max-width: none;
+  }
+}

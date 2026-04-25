@@ -1,5 +1,6 @@
 import { prisma } from '../utils/prisma';
 import { calculationService } from './calculation.service';
+import { gamificationService } from './gamification.service';
 import { NotFoundError } from '../errors/NotFoundError';
 import { Gender, ActivityLevel, GoalType } from '../types/enums';
 import type { UpdateProfileInput, UpdateGoalsInput } from '../validators/user.validator';
@@ -91,6 +92,7 @@ export class UserService {
       },
     });
 
+    gamificationService.onGoalsSet(userId).catch(() => {});
     return goals;
   }
 

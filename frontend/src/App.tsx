@@ -8,9 +8,11 @@ import { Progress } from './pages/Progress'
 import { Goals } from './pages/Goals'
 import { Profile } from './pages/Profile'
 import AddFood from './pages/AddFood'
+import { Achievements } from './pages/Achievements'
+import { GamificationNotifier } from './components/GamificationNotifier'
 import './App.css'
 
-type PageType = 'home' | 'dashboard' | 'workouts' | 'progress' | 'goals' | 'profile' | 'addfood'
+type PageType = 'home' | 'dashboard' | 'workouts' | 'progress' | 'goals' | 'profile' | 'addfood' | 'achievements'
 
 function App() {
   const { user, loading } = useAuth()
@@ -46,12 +48,19 @@ function App() {
         return <Profile />
       case 'addfood':
         return <AddFood />
+      case 'achievements':
+        return <Achievements />
       default:
         return <Dashboard />
     }
   }
 
-  return renderPage()
+  return (
+    <>
+      {renderPage()}
+      <GamificationNotifier />
+    </>
+  )
 }
 
 export default App

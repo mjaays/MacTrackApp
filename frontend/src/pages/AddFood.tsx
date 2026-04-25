@@ -163,6 +163,7 @@ export default function AddFood() {
         setServings('1')
         setSelectedFoodId(null)
         loadTodayData()
+        ;(window as any).triggerGamificationCheck?.()
       } else {
         setMessage(mealRes.error?.message || 'Failed to log meal')
         setMessageType('error')

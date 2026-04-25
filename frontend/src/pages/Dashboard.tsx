@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useAuth } from '../context/AuthContext'
-import { dashboardApi, workoutApi } from '../services/api'
+import { dashboardApi, workoutApi, gamificationApi } from '../services/api'
 import { AppLayout } from '../components/AppLayout'
 import '../styles/Dashboard.css'
 
@@ -9,6 +9,7 @@ export function Dashboard() {
   const [todaySummary, setTodaySummary] = useState<any>(null)
   const [weeklySummary, setWeeklySummary] = useState<any>(null)
   const [recentWorkouts, setRecentWorkouts] = useState<any[]>([])
+  const [gamification, setGamification] = useState<{ stats: any; quests: any[] } | null>(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -18,14 +19,19 @@ export function Dashboard() {
   const loadDashboard = async () => {
     setLoading(true)
     try {
-      const [todayRes, weeklyRes, workoutsRes] = await Promise.all([
+      const [todayRes, weeklyRes, workoutsRes, statsRes, questsRes] = await Promise.all([
         dashboardApi.getToday(),
         dashboardApi.getWeekly(),
         workoutApi.getAll(),
+        gamificationApi.getStats(),
+        gamificationApi.getTodayQuests(),
       ])
       if (todayRes.success) setTodaySummary(todayRes.data)
       if (weeklyRes.success) setWeeklySummary(weeklyRes.data)
       if (workoutsRes.success) setRecentWorkouts((workoutsRes.data || []).slice(0, 3))
+      if (statsRes.success && questsRes.success) {
+        setGamification({ stats: statsRes.data, quests: questsRes.data || [] })
+      }
     } catch (err) {
       console.error('Failed to load dashboard:', err)
     } finally {
@@ -51,6 +57,15 @@ export function Dashboard() {
 
   const getDayLabel = (dateStr: string) =>
     new Date(dateStr).toLocaleDateString('en', { weekday: 'short' })
+
+  const xpPct = (s: any): number => {
+    if (!s) return 0
+    const lvl = s.level ?? 1
+    const start = Math.pow(lvl - 1, 2) * 100
+    const end = Math.pow(lvl, 2) * 100
+    if (end === start) return 100
+    return Math.min(100, Math.round(((s.totalXp - start) / (end - start)) * 100))
+  }
 
   if (loading) {
     return (
@@ -106,6 +121,41 @@ export function Dashboard() {
             </div>
           </div>
         </section>
+
+        {gamification && (
+          <section className="gamification-widget">
+            <div className="gw-left">
+              <div className="gw-level">
+                <span className="gw-level-num">{gamification.stats?.level ?? 1}</span>
+                <span className="gw-level-lbl">LVL</span>
+              </div>
+            </div>
+            <div className="gw-right">
+              <div className="gw-top">
+                <span className="gw-xp-label">{gamification.stats?.totalXp ?? 0} XP</span>
+                <span className="gw-streak">🔥 {gamification.stats?.currentStreak ?? 0} day streak</span>
+              </div>
+              <div className="gw-xp-bar">
+                <div className="gw-xp-fill" style={{ width: `${xpPct(gamification.stats)}%` }} />
+              </div>
+              <div className="gw-quests">
+                {gamification.quests.map((q) => (
+                  <div key={q.questKey} className="gw-quest">
+                    <span className="gw-quest-icon">{q.icon}</span>
+                    <div className="gw-quest-bar-wrap">
+                      <div className="gw-quest-bar">
+                        <div className="gw-quest-fill" style={{ width: `${Math.min(100, Math.round((q.progress / q.target) * 100))}%` }} />
+                      </div>
+                    </div>
+                    <span className="gw-quest-frac">{q.progress}/{q.target}</span>
+                    {q.completed && <span>✅</span>}
+                  </div>
+                ))}
+              </div>
+              <button className="gw-link" onClick={() => navigate('achievements')}>View All Achievements →</button>
+            </div>
+          </section>
+        )}
 
         {goalComparison && (
           <section className="macro-progress">

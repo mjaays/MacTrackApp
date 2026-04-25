@@ -1,5 +1,6 @@
 import { prisma } from '../utils/prisma';
 import { NotFoundError } from '../errors/NotFoundError';
+import { gamificationService } from './gamification.service';
 import { parseISO, endOfDay } from 'date-fns';
 import type { CreateProgressLogInput, UpdateProgressLogInput } from '../validators/progress.validator';
 
@@ -65,7 +66,7 @@ export class ProgressService {
   }
 
   async createProgressLog(userId: string, data: CreateProgressLogInput) {
-    return prisma.progressLog.create({
+    const log = await prisma.progressLog.create({
       data: {
         userId,
         loggedAt: data.loggedAt ? new Date(data.loggedAt) : new Date(),
@@ -80,6 +81,8 @@ export class ProgressService {
         photoUrl: data.photoUrl ?? null,
       },
     });
+    gamificationService.onProgressLogged(userId).catch(() => {});
+    return log;
   }
 
   async updateProgressLog(userId: string, logId: string, data: UpdateProgressLogInput) {
