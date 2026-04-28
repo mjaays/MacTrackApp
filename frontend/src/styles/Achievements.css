@@ -3,15 +3,15 @@
 .achievements-page {
   display: flex;
   flex-direction: column;
-  gap: 28px;
+  gap: 24px;
 }
 
-/* ── Hero ── */
+/* ── Hero (dark card matching sidebar) ── */
 
 .achievements-hero {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--sidebar-bg);
   color: white;
-  border-radius: 16px;
+  border-radius: var(--radius);
   padding: 28px 32px;
   display: flex;
   align-items: center;
@@ -20,11 +20,11 @@
 }
 
 .level-badge {
-  width: 90px;
-  height: 90px;
+  width: 88px;
+  height: 88px;
   border-radius: 50%;
-  background: rgba(255, 255, 255, 0.2);
-  border: 3px solid rgba(255, 255, 255, 0.6);
+  background: rgba(255, 255, 255, 0.1);
+  border: 2px solid rgba(255, 255, 255, 0.25);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -39,10 +39,10 @@
 }
 
 .level-lbl {
-  font-size: 11px;
+  font-size: 9px;
   font-weight: 700;
   letter-spacing: 2px;
-  opacity: 0.8;
+  opacity: 0.6;
 }
 
 .hero-info {
@@ -51,94 +51,99 @@
 }
 
 .hero-title {
-  font-size: 26px;
+  font-size: 24px;
   font-weight: 800;
   margin: 0 0 4px 0;
+  letter-spacing: -0.02em;
 }
 
 .hero-xp {
-  font-size: 14px;
-  opacity: 0.85;
+  font-size: 13px;
+  opacity: 0.7;
   margin: 0 0 12px 0;
+  font-weight: 500;
 }
 
 .xp-bar {
-  height: 12px;
-  background: rgba(255, 255, 255, 0.25);
-  border-radius: 6px;
+  height: 8px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
   overflow: hidden;
 }
 
 .xp-fill {
   height: 100%;
   background: white;
-  border-radius: 6px;
+  border-radius: 4px;
   transition: width 0.6s ease;
 }
 
 .streak-badge {
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.35);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   border-radius: 20px;
   padding: 10px 20px;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 700;
   white-space: nowrap;
+  color: white;
 }
 
 .streak-best {
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
-  opacity: 0.8;
+  opacity: 0.65;
 }
 
 /* ── Section headers ── */
 
 .section-title {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 16px 0;
+  letter-spacing: -0.01em;
 }
 
 .section-sub {
   font-size: 13px;
-  font-weight: 500;
-  color: #9ca3af;
+  font-weight: 400;
+  color: var(--text-3);
   margin-left: 8px;
 }
 
 /* ── Daily Quests ── */
 
 .quests-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .quests-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
 }
 
 .quest-card {
   display: flex;
   gap: 14px;
   padding: 16px;
-  border: 2px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   transition: border-color 0.2s;
+  background: var(--bg);
 }
 
 .quest-card.completed {
-  border-color: #10b981;
+  border-color: #86efac;
   background: #f0fdf4;
 }
 
 .quest-icon {
-  font-size: 28px;
+  font-size: 26px;
   flex-shrink: 0;
   line-height: 1;
   margin-top: 2px;
@@ -152,19 +157,19 @@
 .quest-title {
   font-size: 14px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 2px 0;
 }
 
 .quest-desc {
-  font-size: 13px;
-  color: #6b7280;
+  font-size: 12px;
+  color: var(--text-3);
   margin: 0 0 10px 0;
 }
 
 .quest-bar {
-  height: 6px;
-  background: #e5e7eb;
+  height: 5px;
+  background: var(--border);
   border-radius: 3px;
   overflow: hidden;
   margin-bottom: 6px;
@@ -172,7 +177,7 @@
 
 .quest-fill {
   height: 100%;
-  background: linear-gradient(90deg, #667eea, #764ba2);
+  background: var(--btn);
   border-radius: 3px;
   transition: width 0.4s ease;
 }
@@ -186,13 +191,13 @@
 .quest-progress {
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-3);
 }
 
 .quest-xp {
   font-size: 12px;
   font-weight: 700;
-  color: #667eea;
+  color: var(--text-2);
 }
 
 .quest-done {
@@ -203,76 +208,75 @@
 /* ── Achievements section ── */
 
 .achievements-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .tabs {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   flex-wrap: wrap;
   margin-bottom: 20px;
 }
 
 .tab-btn {
-  padding: 6px 16px;
-  border: 2px solid #e5e7eb;
+  padding: 5px 14px;
+  border: 1px solid var(--border);
   border-radius: 20px;
-  background: none;
+  background: transparent;
   font-size: 12px;
   font-weight: 600;
-  color: #6b7280;
+  color: var(--text-2);
   cursor: pointer;
-  transition: all 0.2s;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
 
 .tab-btn:hover {
-  border-color: #667eea;
-  color: #667eea;
+  border-color: var(--border-strong);
+  color: var(--text);
 }
 
 .tab-btn.active {
-  background: linear-gradient(135deg, #667eea, #764ba2);
-  border-color: transparent;
-  color: white;
+  background: var(--btn);
+  border-color: var(--btn);
+  color: var(--btn-text);
 }
 
 .achievements-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fill, minmax(156px, 1fr));
+  gap: 12px;
 }
 
 .achievement-card {
   position: relative;
-  border-radius: 12px;
+  border-radius: var(--radius-sm);
   padding: 18px 14px 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   text-align: center;
-  transition: transform 0.2s, box-shadow 0.2s;
+  transition: transform 0.2s, border-color 0.2s;
 }
 
 .achievement-card:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+  transform: translateY(-2px);
 }
 
 /* Locked */
 .achievement-card.locked {
-  background: #f9fafb;
-  border: 2px solid #e5e7eb;
-  opacity: 0.65;
-  filter: grayscale(0.5);
+  background: var(--bg);
+  border: 1px solid var(--border);
+  opacity: 0.55;
+  filter: grayscale(1);
 }
 
 /* Unlocked by rarity */
 .achievement-card.unlocked.rarity-common {
-  background: #f9fafb;
-  border: 2px solid #9ca3af;
+  background: var(--bg-card);
+  border: 1px solid var(--border-strong);
 }
 
 .achievement-card.unlocked.rarity-rare {
@@ -306,16 +310,16 @@
   letter-spacing: 0.5px;
   text-transform: uppercase;
   padding: 2px 6px;
-  border-radius: 6px;
+  border-radius: 5px;
 }
 
-.rarity-badge.rarity-common    { background: #e5e7eb; color: #6b7280; }
+.rarity-badge.rarity-common    { background: var(--bg-input); color: var(--text-3); }
 .rarity-badge.rarity-rare      { background: #dbeafe; color: #2563eb; }
 .rarity-badge.rarity-epic      { background: #ede9fe; color: #7c3aed; }
 .rarity-badge.rarity-legendary { background: #fef3c7; color: #d97706; }
 
 .achievement-icon {
-  font-size: 36px;
+  font-size: 34px;
   margin-bottom: 8px;
   line-height: 1;
 }
@@ -323,13 +327,13 @@
 .achievement-name {
   font-size: 13px;
   font-weight: 700;
-  color: #1f2937;
+  color: var(--text);
   margin: 0 0 4px 0;
 }
 
 .achievement-desc {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-3);
   margin: 0 0 6px 0;
   line-height: 1.4;
 }
@@ -337,23 +341,23 @@
 .achievement-xp {
   font-size: 11px;
   font-weight: 700;
-  color: #667eea;
+  color: var(--text-2);
   margin: 0;
 }
 
 .achievement-date {
   font-size: 10px;
-  color: #9ca3af;
+  color: var(--text-3);
   margin: 2px 0 0 0;
 }
 
 /* ── Leaderboard ── */
 
 .leaderboard-section {
-  background: white;
-  border-radius: 12px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
   padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
 .leaderboard-table {
@@ -366,17 +370,17 @@
   font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
-  color: #9ca3af;
-  border-bottom: 2px solid #e5e7eb;
+  letter-spacing: 0.05em;
+  color: var(--text-3);
+  border-bottom: 1px solid var(--border);
   padding: 10px 12px;
   text-align: left;
 }
 
 .leaderboard-table td {
   padding: 12px;
-  border-bottom: 1px solid #f3f4f6;
-  color: #374151;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-2);
 }
 
 .leaderboard-table tr:last-child td {
@@ -385,11 +389,23 @@
 
 .leaderboard-table tr.top-rank td {
   font-weight: 600;
+  color: var(--text);
 }
 
 .rank-cell {
   font-size: 18px;
   width: 50px;
+}
+
+/* ── States ── */
+
+.loading-state,
+.empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--text-3);
+  font-size: 14px;
+  font-weight: 400;
 }
 
 /* ── Responsive ── */
