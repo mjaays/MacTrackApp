@@ -8,6 +8,7 @@ import workoutRoutes from './workout.routes';
 import progressRoutes from './progress.routes';
 import dashboardRoutes from './dashboard.routes';
 import gamificationRoutes from './gamification.routes';
+import networkRoutes from './network.routes';
 
 const router = Router();
 
@@ -20,5 +21,6 @@ router.use('/workouts', workoutRoutes);
 router.use('/progress', progressRoutes);
 router.use('/dashboard', dashboardRoutes);
 router.use('/gamification', gamificationRoutes);
+router.use('/network', networkRoutes);
 
 export default router;
