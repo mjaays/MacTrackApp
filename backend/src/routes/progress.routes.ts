@@ -14,6 +14,9 @@ router.get('/', progressController.getProgressLogs);
 // GET /progress/stats - Weight/measurement trend stats
 router.get('/stats', progressController.getProgressStats);
 
+// GET /progress/goal - Goal weight progress + projection
+router.get('/goal', progressController.getGoalProgress);
+
 // GET /progress/:id - Get progress log by ID
 router.get('/:id', progressController.getProgressLogById);
 

@@ -184,6 +184,7 @@ export const workoutApi = {
 export const progressApi = {
   getAll: (page = 1, limit = 20) => request(`/progress?page=${page}&limit=${limit}`),
   getStats: () => request('/progress/stats'),
+  getGoalProgress: () => request('/progress/goal'),
   getById: (id: string) => request(`/progress/${id}`),
   create: (body: Record<string, any>) =>
     request('/progress', { method: 'POST', body: JSON.stringify(body) }),

@@ -102,6 +102,19 @@ export const progressController = {
       next(error);
     }
   },
+
+  async getGoalProgress(
+    req: AuthenticatedRequest,
+    res: Response,
+    next: NextFunction
+  ): Promise<void> {
+    try {
+      const goal = await progressService.getGoalProgress(req.userId!);
+      responseUtil.success(res, goal);
+    } catch (error) {
+      next(error);
+    }
+  },
 };
 
 export default progressController;

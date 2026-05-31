@@ -160,6 +160,137 @@ export class ProgressService {
         : null,
     };
   }
+
+  /**
+   * Least-squares slope of weight over time, expressed as kg/week (signed).
+   * Returns null when there are fewer than 2 weighted entries, or all entries
+   * fall on the same day (no time span to fit a trend to).
+   */
+  private computeWeeklyRate(
+    entries: { loggedAt: Date; weightKg: number | null }[]
+  ): number | null {
+    const pts = entries
+      .filter((e): e is { loggedAt: Date; weightKg: number } => e.weightKg !== null)
+      .map((e) => ({ t: e.loggedAt.getTime(), y: e.weightKg }));
+    if (pts.length < 2) return null;
+
+    const msPerDay = 1000 * 60 * 60 * 24;
+    const t0 = pts[0].t;
+    const xs = pts.map((p) => (p.t - t0) / msPerDay);
+    const ys = pts.map((p) => p.y);
+
+    const n = pts.length;
+    const meanX = xs.reduce((s, v) => s + v, 0) / n;
+    const meanY = ys.reduce((s, v) => s + v, 0) / n;
+
+    let num = 0;
+    let den = 0;
+    for (let i = 0; i < n; i++) {
+      num += (xs[i] - meanX) * (ys[i] - meanY);
+      den += (xs[i] - meanX) ** 2;
+    }
+    if (den === 0) return null; // all entries on the same day
+
+    const slopePerDay = num / den; // kg/day
+    return slopePerDay * 7; // kg/week
+  }
+
+  /**
+   * Goal weight progress + projection.
+   * Combines the user's target weight (UserGoals) with their logged weight
+   * trend to compute % complete, kg remaining, observed weekly rate, and a
+   * projected date to reach the target at the current pace.
+   */
+  async getGoalProgress(userId: string) {
+    const [goals, weightLogs] = await Promise.all([
+      prisma.userGoals.findUnique({ where: { userId } }),
+      prisma.progressLog.findMany({
+        where: { userId, weightKg: { not: null } },
+        orderBy: { loggedAt: 'asc' },
+        select: { loggedAt: true, weightKg: true },
+      }),
+    ]);
+
+    const targetWeightKg = goals?.targetWeightKg ?? null;
+    const hasGoal = targetWeightKg !== null;
+    const hasData = weightLogs.length > 0;
+
+    const startWeightKg = hasData ? weightLogs[0].weightKg : null;
+    const currentWeightKg = hasData ? weightLogs[weightLogs.length - 1].weightKg : null;
+    const weeklyRateKg = this.computeWeeklyRate(weightLogs);
+
+    let totalChangeKg: number | null = null;
+    let changedKg: number | null = null;
+    let remainingKg: number | null = null;
+    let percentComplete: number | null = null;
+    let reached = false;
+    let onTrack: boolean | null = null;
+    let weeksRemaining: number | null = null;
+    let projectedDate: string | null = null;
+
+    if (
+      hasGoal &&
+      hasData &&
+      startWeightKg !== null &&
+      currentWeightKg !== null &&
+      targetWeightKg !== null
+    ) {
+      totalChangeKg = targetWeightKg - startWeightKg;
+      changedKg = currentWeightKg - startWeightKg;
+      remainingKg = targetWeightKg - currentWeightKg;
+
+      // % of the planned change covered so far (clamped to 0..100)
+      if (Math.abs(totalChangeKg) < 0.05) {
+        percentComplete = 100; // started already at target
+      } else {
+        const raw = (changedKg / totalChangeKg) * 100;
+        percentComplete = Math.max(0, Math.min(100, Math.round(raw)));
+      }
+
+      if (Math.abs(remainingKg) <= 0.25) {
+        // Within tolerance of the target
+        reached = true;
+        percentComplete = 100;
+        onTrack = true;
+        weeksRemaining = 0;
+      } else if (weeklyRateKg !== null && weeklyRateKg !== 0) {
+        const slopePerDay = weeklyRateKg / 7;
+        // Both signed: positive only when the trend moves toward the target
+        const daysToGoal = remainingKg / slopePerDay;
+        const maxDays = 520 * 7; // ~10 years — beyond this the pace is effectively flat
+        if (daysToGoal > 0 && daysToGoal <= maxDays) {
+          onTrack = true;
+          weeksRemaining = Math.round((daysToGoal / 7) * 10) / 10;
+          projectedDate = new Date(Date.now() + daysToGoal * 24 * 60 * 60 * 1000).toISOString();
+        } else {
+          onTrack = false;
+        }
+      } else {
+        onTrack = false;
+      }
+    }
+
+    const round1 = (v: number | null) => (v !== null ? Math.round(v * 10) / 10 : null);
+
+    return {
+      hasGoal,
+      hasData,
+      goalType: goals?.goalType ?? null,
+      startWeightKg,
+      currentWeightKg,
+      targetWeightKg,
+      totalChangeKg: round1(totalChangeKg),
+      changedKg: round1(changedKg),
+      remainingKg: round1(remainingKg),
+      percentComplete,
+      weeklyRateKg: weeklyRateKg !== null ? Math.round(weeklyRateKg * 100) / 100 : null,
+      plannedWeeklyRateKg: goals?.weeklyWeightChangeKg ?? null,
+      reached,
+      onTrack,
+      weeksRemaining,
+      projectedDate,
+    };
+  }
 }
 
 export const progressService = new ProgressService();
